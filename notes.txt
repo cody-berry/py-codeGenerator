@@ -10,6 +10,8 @@ The subroutine level symbol table will be reset whenever you change subroutines.
 To access variables, access the subroutine level. If we don't find it, access the class level. If we still don't, throw an error message.
 Handle infinite scoping with a linked list of symbol tables.
 Unit 5.3: Handling Expressions
+Infix is human orientation. Prefix notation is function oriented. In the example, it has no parentheses. Postfix notation is related to our stack in VM.
+To translate expressions to VM code: a) If expression is a number 'n', output push n. b) If the expression is a variable name, output push var. c) If the expression is an expression, an operator, and an expression, write the code for the first expression, then the second expression, and then push op. d) If the expression is an op and an expression, write code for the expression and output the operator. e) If the expression is a function call, write all the parameters of the function before outputting call f, where f is the function.
 Unit 5.4: Handling Flow of Controls
 
 
