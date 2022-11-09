@@ -1,0 +1,15 @@
+Unit 5.1: Code Generation
+While writing the compiler, you're going to gain lots of very important capabilities.
+In unit 4, we made a tokenizer and a parser and made legible XML code. We no longer care about that because we want to make VM code!
+Each class is compiled separately, and the class level code and the subroutine code are pretty separate. Now it's just compiling a single subroutine!
+Unit 5.2: Handling Variables
+In order to generate actual VM code, we must know whether each variable is a field, static, local, or argument variable, and whether each variable is the first, second, or third variable of its kind.
+A variable contains a name, type, kind, and scope. We will use symbol tables that contain these things. For methods only, there is an extra 'this' argument 0.
+The class level symbol table will be reset whenever you change classes.
+The subroutine level symbol table will be reset whenever you change subroutines.
+To access variables, access the subroutine level. If we don't find it, access the class level. If we still don't, throw an error message.
+Handle infinite scoping with a linked list of symbol tables.
+Unit 5.3: Handling Expressions
+Unit 5.4: Handling Flow of Controls
+
+
