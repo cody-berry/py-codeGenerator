@@ -16,5 +16,10 @@ Unit 5.4: Handling Flow of Controls
 To compile an if statement, if we compile the expression, we negate it, we if-goto label L1, compile statements1, and we go to L2. Label L1 and compile statements2, and label L2.
 To compile a while expression, label L1. Compile the expressions, negate it, if-goto label L2, compile statements, and goto L1. After that, label L2.
 Complications: If and while statements are often nested. Labels need to be unique.
-Unit 5.5: Handling Objects: Low-Level Aspects
-
+09:38 am Thursday, November 10, 2022
+[0938]→ Unit 5.5: Handling Objects: Low-Level Aspects
+We are very fortunate that we have high-level programming-friendly languages and compilers to compile to machine language.
+Object data is accessed via the 'this' segment, while array data is accessed using the 'that' segment. But before we do this, we must anchor them using the 'pointer' segment.
+Unit 5.6: Handling Objects: Construction
+When the compiler encounters a variable declaration, the VM code doesn't change. When we call a constructor, we push the arguments and trust that it will return the memory address in the heap.
+To compile a constructor, use the function alloc() to find a memory segment with a length of the argument given.
