@@ -13,5 +13,8 @@ Unit 5.3: Handling Expressions
 Infix is human orientation. Prefix notation is function oriented. In the example, it has no parentheses. Postfix notation is related to our stack in VM.
 To translate expressions to VM code: a) If expression is a number 'n', output push n. b) If the expression is a variable name, output push var. c) If the expression is an expression, an operator, and an expression, write the code for the first expression, then the second expression, and then push op. d) If the expression is an op and an expression, write code for the expression and output the operator. e) If the expression is a function call, write all the parameters of the function before outputting call f, where f is the function.
 Unit 5.4: Handling Flow of Controls
-
+To compile an if statement, if we compile the expression, we negate it, we if-goto label L1, compile statements1, and we go to L2. Label L1 and compile statements2, and label L2.
+To compile a while expression, label L1. Compile the expressions, negate it, if-goto label L2, compile statements, and goto L1. After that, label L2.
+Complications: If and while statements are often nested. Labels need to be unique.
+Unit 5.5: Handling Objects: Low-Level Aspects
 
