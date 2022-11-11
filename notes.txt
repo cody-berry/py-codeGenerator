@@ -29,4 +29,39 @@ We can access an object's i-th field by accessing this i after assigning pointer
 pointer 0. A void method returns 0, or 'false'. The value gets dumped.
 11:30 am Thursday, November 10, 2022
 [1130]→ Unit 5.8: Handling Arrays
+An array is a class. Initialization is handled exactly like object constructor. THIS=objects and THAT=arrays.
+To access arr[exp₁] = exp₂, use the code:
+push arr
+codeWrite(exp₁)
+add
+pop pointer 1
+codeWrite(exp₂)
+pop that 0
 
+for a[i] = b[j]
+push a
+push i
+add
+push b
+push j
+add
+pop pointer 1
+push that 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+
+so to access arr[exp₁] = exp₂:
+push arr
+codeWrite(exp₁)
+add
+codeWrite(exp₂)
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+
+08:29 am Saturday, November 12, 2022
+[0829]→ Unit 5.9: Standard Mapping Over the Virtual Machine
+The basic Jack OS is implemented as a set of 8 compiled VM class files. All OS class files must be in the same directory as the VM files generated. Any VM function to call any OS VM function for its effect.
