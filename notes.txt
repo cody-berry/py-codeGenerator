@@ -65,3 +65,8 @@ pop that 0
 08:29 am Saturday, November 12, 2022
 [0829]→ Unit 5.9: Standard Mapping Over the Virtual Machine
 The basic Jack OS is implemented as a set of 8 compiled VM class files. All OS class files must be in the same directory as the VM files generated. Any VM function to call any OS VM function for its effect.
+
+09:34 am Sunday, November 13, 2022
+[0934]→ Unit 5.10: Completing the Compiler: Proposed Implementation
+The main focus of this project is to write two classes: SymbolTable and VMWriter. CompilationEngine needs some work.
+
