@@ -70,3 +70,15 @@ The basic Jack OS is implemented as a set of 8 compiled VM class files. All OS c
 [0934]→ Unit 5.10: Completing the Compiler: Proposed Implementation
 The main focus of this project is to write two classes: SymbolTable and VMWriter. CompilationEngine needs some work.
 
+10:06 am Sunday, November 13, 2022
+[1006]→ Unit 5.11: Project 11
+Test this project by, first, do the symbol table handling. Then do the code generation.
+The symbol table extends the handling of identifiers. It outputs the type, kind, number, and scope.
+For code generation, use 6 test programs. One of the programs is named Seven, but it's not the 7th program. For each test, use your compiler to compile the program directory. Inspect the genrated code. If there's a problem, fix your compiler and repeat. Load the directory into the VM emulator if there isn't a problem. Run the compiled program and inspect the results. If there's a problem, fix your compiler and repeat all the way to the beginning.
+The 6 programs:
+1. Seven. Computes the vaule of 1 + (2 * 3). It tests a simple program with an arithmetic expression involving constants only, a do statement, and a return statement.
+2. Decimal-to-binary conversion. It prints out a message that converts decimal to binary. The compiled program converts Ram[8000] to binary, and stores the 16 bits in RAM[8001] to RAM[8016]. If you rewind the code, the RAM is reset. You cannot access the RAM when the animation mode is No Amination. You need to click the Stop button if you want to see the results in No Animation mode.
+3. Square (Dance). This tests expressios that include method calls, methods, and constructors.
+4. Average. It tests how your compiler handles arrays and strings. It computes the average of hand-typed numbers.
+5. Pong. This tests fully object-oriented things.
+6. ComplexArrays. This tests cryptic array statements that are very complicated. This goes all-out arrays, so be prepared!
