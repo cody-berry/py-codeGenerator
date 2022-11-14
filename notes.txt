@@ -82,3 +82,8 @@ The 6 programs:
 4. Average. It tests how your compiler handles arrays and strings. It computes the average of hand-typed numbers.
 5. Pong. This tests fully object-oriented things.
 6. ComplexArrays. This tests cryptic array statements that are very complicated. This goes all-out arrays, so be prepared!
+
+01:41 pm Monday, November 14, 2022
+[1341]→ Unit 5.12: Perspective
+Jack doesn't really have a type system. This allows your compiler to almost sidestep all headaches that is handled with typing issues. Array entries are un-typed in Jack. In normal languages, the type of the expression 'x + y' depends highly on the types of x and y, rather than Jack. Jack doesn't use inheritance.
+What is important is that the compiler will translate code into efficient code, not that it is efficient itself.
