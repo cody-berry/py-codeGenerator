@@ -1,0 +1,63 @@
+SymbolTable:
+    Enum background: varType.STATIC, varType.FIELD, varType.ARG, varType.VAR, varType.NONE
+    constructor()
+        Create 2 fields, classSymbolTable and subroutineSymbolTable. Then create 4 fields,
+        classLevelFieldCount, classLevelStaticCount, subroutineLevelArgCount, and subroutineLevelLocalCount.
+        classSymbolTable and subroutineSymbolTables will be dictionaries with a format of:
+        [
+        {varName: ,
+        type: ,
+        kind: ,
+        num:
+        }
+        : representing different variables.
+        :
+        ]
+        The remaining 4 fields will be numbers, initially set to 0.
+    startSubroutine()
+        Make subroutineSymbolTable an empty list. Set subroutineLevelArgCount and subroutineLevelLocalCount to 0.
+    define(name, type, kind)
+        Make the following dictionary and store it into currentVar:
+        {'varName': name,
+        'type': type,
+        'kind': kind,
+        'num': varCount(kind)}
+        Match the kind to one of these:
+            case varType.STATIC:
+                Append currentVar to classSymbolTable. Increment classLevelStaticCount.
+            case varType.FIELD:
+                Append currentVar to classSymbolTable. Increment classLevelFieldCount.
+            case varType.ARG:
+                Append currentVar to subroutineSymbolTable. Increment subroutineLevelArgCount.
+            case varType.VAR:
+                Append currentVar to subroutineSymbolTable. Increment subroutineLevelLocalCount.
+    varCount(kind)
+        Match the kind to one of these:
+        case varType.STATIC:
+            Return classLevelStaticCount.
+        case varType.FIELD:
+            Return classLevelFieldCount.
+        case varType.ARG:
+            Return subroutineLevelArgCount.
+        case varType.VAR:
+            Return subroutineLevelLocalCount.
+    KindOf(name)
+        Iterate through subroutineSymbolTable with a variable of subroutineVar:
+            If subroutineVar['name'] is the same as name, return subroutineVar['kind']
+        Iterate through classSymbolTable with a variable of classVar:
+            If classVar['name'] is the same as name, return classVar['kind']
+        Return varType.none
+    typeOf(name)
+        Iterate through subroutineSymbolTable with a variable of subroutineVar:
+            If subroutineVar['name'] is the same as name, return subroutineVar['type']
+        Iterate through classSymbolTable with a variable of classVar:
+            If classVar['name'] is the same as name, return classVar['type']
+        Raise a ValueError
+    indexOf(name)
+        Iterate through subroutineSymbolTable with a variable of subroutineVar:
+                If subroutineVar['name'] is the same as name, return subroutineVar['num']
+        Iterate through classSymbolTable with a variable of classVar:
+            If classVar['name'] is the same as name, return classVar['num']
+        Raise a valueError
+VMWriter
+
