@@ -60,4 +60,54 @@ SymbolTable:
             If classVar['name'] is the same as name, return classVar['num']
         Raise a valueError
 VMWriter
+    Enum background: segments.CONST, segments.ARG, segments.LOCAL, segments.STATIC, segments.THIS, segments.THAT,
+    segments.POINTER, segments.TEMP, command.ADD, command.SUB, command.NEG, command.EQ, command.GT, command.LT,
+    command.AND, command.OR, command.NOT
+    constructor(file):
+        Prepares file for writing. Create a field called segment-to-vm-segment-mapping that looks like this:
+        {
+        segments.CONST: constant,
+        segments.ARG: arg,
+        segments.LOCAL: local,
+        segments.STATIC: static,
+        segments.THIS: this,
+        segments.THAT: that,
+        segments.POINTER: pointer,
+        segments.TEMP: temp
+        }
+    writePush(segment, index):
+        Return 'push ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
+    writePop(segment, index):
+        Return 'pop ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
+    writeArithmetic(command):
+        Return the lowercase version of the command's name.
+    writeLabel(label):
+        Return 'label ' + label
+    writeGoto(label):
+        Return 'goto ' + label
+    writeIf(label):
+        Return 'if-goto ' + label
+    writeCall(name, nArgs):
+        Return 'call ' + name + ' ' + str(nArgs)
+    writeFunction(name, nLocals):
+        Return 'function ' + name + ' ' + str(nLocals)
+    writeReturn():
+        Return 'return'
+    close():
+        Close the output file.
+
+    Pretty simple. A monkey could write code out of this after watching the NAND lectures.
+
+    Testing: writeTest(function):
+    match the function to one of these:
+    push: writePush(segments.ARG, 5)
+    pop: writePop(segments.ARG, 6)
+    arithmetic: writeArithmetic(command.NOT)
+    label: writeLabel(test)
+    goto: writeGoto(test)
+    if: writeIf(test)
+    call: writeCall(test, 10)
+    fun: writeFunction(test, 10)
+    return: writeReturn()
+
 
