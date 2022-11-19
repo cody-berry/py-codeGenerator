@@ -81,7 +81,7 @@ The 6 programs:
 3. Square (Dance). This tests expressios that include method calls, methods, and constructors.
 4. Average. It tests how your compiler handles arrays and strings. It computes the average of hand-typed numbers.
 5. Pong. This tests fully object-oriented things.
-6. ComplexArrays. This tests cryptic array statements that are very complicated. This goes all-out arrays, so be prepared!
+6. ComplexArrays. This tests cryptic array statements that are very complicated, including a[b[a[6]]]. This goes all-out arrays, so be prepared!
 
 01:41 pm Monday, November 14, 2022
 [1341]→ Unit 5.12: Perspective

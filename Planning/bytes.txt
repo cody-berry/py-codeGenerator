@@ -1,6 +1,6 @@
 SymbolTable:
-    Enum background: varType.STATIC, varType.FIELD, varType.ARG, varType.VAR, varType.NONE
-    constructor()
+    ☐ Enum background: varType.STATIC, varType.FIELD, varType.ARG, varType.VAR, varType.NONE
+    ☐ constructor()
         Create 2 fields, classSymbolTable and subroutineSymbolTable. Then create 4 fields,
         classLevelFieldCount, classLevelStaticCount, subroutineLevelArgCount, and subroutineLevelLocalCount.
         classSymbolTable and subroutineSymbolTables will be dictionaries with a format of:
@@ -14,9 +14,9 @@ SymbolTable:
         :
         ]
         The remaining 4 fields will be numbers, initially set to 0.
-    startSubroutine()
+    ☐ startSubroutine()
         Make subroutineSymbolTable an empty list. Set subroutineLevelArgCount and subroutineLevelLocalCount to 0.
-    define(name, type, kind)
+    ☐ define(name, type, kind)
         Make the following dictionary and store it into currentVar:
         {'varName': name,
         'type': type,
@@ -31,7 +31,7 @@ SymbolTable:
                 Append currentVar to subroutineSymbolTable. Increment subroutineLevelArgCount.
             case varType.VAR:
                 Append currentVar to subroutineSymbolTable. Increment subroutineLevelLocalCount.
-    varCount(kind)
+    ☐ varCount(kind)
         Match the kind to one of these:
         case varType.STATIC:
             Return classLevelStaticCount.
@@ -41,29 +41,29 @@ SymbolTable:
             Return subroutineLevelArgCount.
         case varType.VAR:
             Return subroutineLevelLocalCount.
-    KindOf(name)
+    ☐ KindOf(name)
         Iterate through subroutineSymbolTable with a variable of subroutineVar:
             If subroutineVar['name'] is the same as name, return subroutineVar['kind']
         Iterate through classSymbolTable with a variable of classVar:
             If classVar['name'] is the same as name, return classVar['kind']
         Return varType.none
-    typeOf(name)
+    ☐ typeOf(name)
         Iterate through subroutineSymbolTable with a variable of subroutineVar:
             If subroutineVar['name'] is the same as name, return subroutineVar['type']
         Iterate through classSymbolTable with a variable of classVar:
             If classVar['name'] is the same as name, return classVar['type']
         Raise a ValueError
-    indexOf(name)
+    ☐ indexOf(name)
         Iterate through subroutineSymbolTable with a variable of subroutineVar:
                 If subroutineVar['name'] is the same as name, return subroutineVar['num']
         Iterate through classSymbolTable with a variable of classVar:
             If classVar['name'] is the same as name, return classVar['num']
         Raise a valueError
 VMWriter
-    Enum background: segments.CONST, segments.ARG, segments.LOCAL, segments.STATIC, segments.THIS, segments.THAT,
+    ☐ Enum background: segments.CONST, segments.ARG, segments.LOCAL, segments.STATIC, segments.THIS, segments.THAT,
     segments.POINTER, segments.TEMP, command.ADD, command.SUB, command.NEG, command.EQ, command.GT, command.LT,
     command.AND, command.OR, command.NOT
-    constructor(file):
+    ☐ constructor(file):
         Prepares file for writing. Create a field called segment-to-vm-segment-mapping that looks like this:
         {
         segments.CONST: constant,
@@ -75,25 +75,25 @@ VMWriter
         segments.POINTER: pointer,
         segments.TEMP: temp
         }
-    writePush(segment, index):
+    ☐ writePush(segment, index):
         Return 'push ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
-    writePop(segment, index):
+    ☐ writePop(segment, index):
         Return 'pop ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
-    writeArithmetic(command):
+    ☐ writeArithmetic(command):
         Return the lowercase version of the command's name.
-    writeLabel(label):
+    ☐ writeLabel(label):
         Return 'label ' + label
-    writeGoto(label):
+    ☐ writeGoto(label):
         Return 'goto ' + label
-    writeIf(label):
+    ☐ writeIf(label):
         Return 'if-goto ' + label
-    writeCall(name, nArgs):
+    ☐ writeCall(name, nArgs):
         Return 'call ' + name + ' ' + str(nArgs)
-    writeFunction(name, nLocals):
+    ☐ writeFunction(name, nLocals):
         Return 'function ' + name + ' ' + str(nLocals)
-    writeReturn():
+    ☐ writeReturn():
         Return 'return'
-    close():
+    ☐ close():
         Close the output file.
 
     Pretty simple. A monkey could write code out of this after watching the NAND lectures.
