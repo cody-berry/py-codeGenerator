@@ -8,9 +8,8 @@ from VMWriter import *
 # compileEngine = CompilationEngine(file, tokenizer)
 symbolTable = SymbolTable()
 VMWriter = VMWriter('Planning/test.txt')
-print(Segments.CONST, Segments.ARG, Segments.LOCAL, Segments.STATIC,
-      Segments.THIS, Segments.THAT, Segments.POINTER, Segments.TEMP,
-      Command.ADD, Command.SUB, Command.NEG, Command.EQ, Command.GT, Command.LT,
-      Command.AND, Command.OR, Command.NOT)
-print(VMWriter.output)
-print(VMWriter.segmentEnumToVMSegmentMapping, VMWriter.commandEnumToVMArithmeticLogicCommandMapping)
+
+symbolTable.subroutineSymbolTable = ['NEEDS TO BE RESET']
+symbolTable.startSubroutine()
+
+print(symbolTable.subroutineSymbolTable)

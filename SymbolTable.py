@@ -21,3 +21,8 @@ class SymbolTable:
         self.classLevelStaticCount = 0
         self.subroutineLevelArgCount = 0
         self.subroutineLevelLocalCount = 0
+
+    # starts a subroutine
+    def startSubroutine(self):
+        # re-initialize subroutine symbol table
+        self.subroutineSymbolTable = []
