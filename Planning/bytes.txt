@@ -1,6 +1,6 @@
 SymbolTable:
-    ☐ Enum background: varType.STATIC, varType.FIELD, varType.ARG, varType.VAR, varType.NONE
-    ☐ constructor()
+    ☒ Enum background: varType.STATIC, varType.FIELD, varType.ARG, varType.VAR, varType.NONE
+    ☒ constructor()
         Create 2 fields, classSymbolTable and subroutineSymbolTable. Then create 4 fields,
         classLevelFieldCount, classLevelStaticCount, subroutineLevelArgCount, and subroutineLevelLocalCount.
         classSymbolTable and subroutineSymbolTables will be dictionaries with a format of:

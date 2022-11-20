@@ -11,7 +11,7 @@ class CompilationEngine:
             self.compile_class()
         except ValueError:
             self.output.write(
-                'ERRORRROiejdifoj sdiof jasioep ifoawup3iro5234 u90i         token ' + self.tokenizer.current_token)
+                'ERRORRRRRRRRRR         token ' + self.tokenizer.current_token)
 
     # advances
     def advance(self):
