@@ -49,5 +49,189 @@ class SymbolTable:
                 self.subroutineSymbolTable.append(newVar)
                 self.subroutineLevelLocalCount += 1
 
+    # returns the number of variables that have a certain kind
     def varCount(self, kind):
-        return False
+        match kind:
+            case VarType.STATIC:
+                return self.classLevelStaticCount
+            case VarType.FIELD:
+                return self.classLevelFieldCount
+            case VarType.ARG:
+                return self.subroutineLevelArgCount
+            case VarType.VAR:
+                return self.subroutineLevelLocalCount
+
+    # returns the kind of 'name'
+    def kindOf(self, name):
+        for subroutineVar in self.subroutineSymbolTable:
+            if subroutineVar['varName'] == name:
+                return subroutineVar['kind']
+        for classVar in self.classSymbolTable:
+            if classVar['varName'] == name:
+                return classVar['kind']
+        return VarType.NONE
+
+    # returns the kind of 'name'
+    def typeOf(self, name):
+        for subroutineVar in self.subroutineSymbolTable:
+            if subroutineVar['varName'] == name:
+                return subroutineVar['type']
+        for classVar in self.classSymbolTable:
+            if classVar['varName'] == name:
+                return classVar['type']
+        raise TypeError(f"Either {name} was not found as a variable, or it did not have a type.")
+
+    # returns the kind of 'name'
+    def indexOf(self, name):
+        for subroutineVar in self.subroutineSymbolTable:
+            if subroutineVar['varName'] == name:
+                return subroutineVar['num']
+        for classVar in self.classSymbolTable:
+            if classVar['varName'] == name:
+                return classVar['num']
+        return IndexError(f"Either {name} was not found as a variable, or it did not have an index.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

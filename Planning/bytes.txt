@@ -31,29 +31,29 @@ SymbolTable:
                 Append currentVar to subroutineSymbolTable. Increment subroutineLevelArgCount.
             case varType.VAR:
                 Append currentVar to subroutineSymbolTable. Increment subroutineLevelLocalCount.
-    ☐ varCount(kind)
+    ☒ varCount(kind)
         Match the kind to one of these:
-        case varType.STATIC:
-            Return classLevelStaticCount.
-        case varType.FIELD:
-            Return classLevelFieldCount.
-        case varType.ARG:
-            Return subroutineLevelArgCount.
-        case varType.VAR:
-            Return subroutineLevelLocalCount.
-    ☐ KindOf(name)
+            case varType.STATIC:
+                Return classLevelStaticCount.
+            case varType.FIELD:
+                Return classLevelFieldCount.
+            case varType.ARG:
+                Return subroutineLevelArgCount.
+            case varType.VAR:
+                Return subroutineLevelLocalCount.
+    ☒ KindOf(name)
         Iterate through subroutineSymbolTable with a variable of subroutineVar:
             If subroutineVar['name'] is the same as name, return subroutineVar['kind']
         Iterate through classSymbolTable with a variable of classVar:
             If classVar['name'] is the same as name, return classVar['kind']
         Return varType.none
-    ☐ typeOf(name)
+    ☒ typeOf(name)
         Iterate through subroutineSymbolTable with a variable of subroutineVar:
             If subroutineVar['name'] is the same as name, return subroutineVar['type']
         Iterate through classSymbolTable with a variable of classVar:
             If classVar['name'] is the same as name, return classVar['type']
         Raise a ValueError
-    ☐ indexOf(name)
+    ☒ indexOf(name)
         Iterate through subroutineSymbolTable with a variable of subroutineVar:
                 If subroutineVar['name'] is the same as name, return subroutineVar['num']
         Iterate through classSymbolTable with a variable of classVar:
