@@ -14,15 +14,15 @@ SymbolTable:
         :
         ]
         The remaining 4 fields will be numbers, initially set to 0.
-    ☐ startSubroutine()
+    ☒ startSubroutine()
         Make subroutineSymbolTable an empty list. Set subroutineLevelArgCount and subroutineLevelLocalCount to 0.
-    ☐ define(name, type, kind)
+    ☒ define(name, type, kind)
         Make the following dictionary and store it into currentVar:
         {'varName': name,
         'type': type,
         'kind': kind,
         'num': varCount(kind)}
-        Match the kind to one of these:
+         Match the kind to one of these:
             case varType.STATIC:
                 Append currentVar to classSymbolTable. Increment classLevelStaticCount.
             case varType.FIELD:
