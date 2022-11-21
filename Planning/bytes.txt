@@ -60,10 +60,10 @@ SymbolTable:
             If classVar['name'] is the same as name, return classVar['num']
         Raise a valueError
 VMWriter
-    ☐ Enum background: segments.CONST, segments.ARG, segments.LOCAL, segments.STATIC, segments.THIS, segments.THAT,
+    ☒ Enum background: segments.CONST, segments.ARG, segments.LOCAL, segments.STATIC, segments.THIS, segments.THAT,
     segments.POINTER, segments.TEMP, command.ADD, command.SUB, command.NEG, command.EQ, command.GT, command.LT,
     command.AND, command.OR, command.NOT
-    ☐ constructor(file):
+    ☒ constructor(file):
         Prepares file for writing. Create a field called segment-to-vm-segment-mapping that looks like this:
         {
         segments.CONST: constant,

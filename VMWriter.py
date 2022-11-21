@@ -50,3 +50,170 @@ class VMWriter:
             Command.OR: 'or',
             Command.NOT: 'not'
         }
+
+    def writePush(self, segment, index):
+        self.output.write('push ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index))
+
+    def test(self, function):
+        match function:
+            case 'push':
+                self.writePush(Segments.CONST, 5)
+            case 'pop':
+                self.writePop(Segments.ARG, 6)
+            case 'arithmetic':
+                self.writeArithmetic(Command.NOT)
+            case 'label':
+                self.writeLabel('test')
+            case 'goto':
+                self.writeGoto('test')
+            case 'if':
+                self.writeIf('test')
+            case 'call':
+                self.writeCall('test', 10)
+            case 'fun':
+                self.writeFunction('test', 10)
+            case 'return':
+                self.writeReturn()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
