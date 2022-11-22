@@ -9,4 +9,4 @@ from VMWriter import *
 symbolTable = SymbolTable()
 VMWriter = VMWriter('Planning/test.txt')
 
-VMWriter.test('push')
+VMWriter.test('pop')

@@ -54,6 +54,9 @@ class VMWriter:
     def writePush(self, segment, index):
         self.output.write('push ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index))
 
+    def writePop(self, segment, index):
+        self.output.write('pop ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index))
+
     def test(self, function):
         match function:
             case 'push':

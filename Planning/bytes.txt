@@ -75,9 +75,9 @@ VMWriter
         segments.POINTER: pointer,
         segments.TEMP: temp
         }
-    ☐ writePush(segment, index):
+    ☒ writePush(segment, index):
         Return 'push ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
-    ☐ writePop(segment, index):
+    ☒ writePop(segment, index):
         Return 'pop ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
     ☐ writeArithmetic(command):
         Return the lowercase version of the command's name.
