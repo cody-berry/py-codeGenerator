@@ -9,4 +9,8 @@ from VMWriter import *
 symbolTable = SymbolTable()
 VMWriter = VMWriter('Planning/test.txt')
 
-VMWriter.test('pop')
+VMWriter.test('push', Segments.ARG, 0)
+VMWriter.test('pop', Segments.LOCAL, 0)
+VMWriter.test('push', Segments.ARG, 1)
+VMWriter.test('arithmetic', Command.NEG)
+VMWriter.test('pop', Segments.LOCAL, 1)

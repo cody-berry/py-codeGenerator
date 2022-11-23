@@ -52,29 +52,32 @@ class VMWriter:
         }
 
     def writePush(self, segment, index):
-        self.output.write('push ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index))
+        self.output.write('push ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index) + '\n')
 
     def writePop(self, segment, index):
-        self.output.write('pop ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index))
+        self.output.write('pop ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index) + '\n')
 
-    def test(self, function):
+    def writeArithmetic(self, command):
+        self.output.write(self.commandEnumToVMArithmeticLogicCommandMapping[command] + '\n')
+
+    def test(self, function, test1=None, test2=None):
         match function:
             case 'push':
-                self.writePush(Segments.CONST, 5)
+                self.writePush(test1, test2)
             case 'pop':
-                self.writePop(Segments.ARG, 6)
+                self.writePop(test1, test2)
             case 'arithmetic':
-                self.writeArithmetic(Command.NOT)
+                self.writeArithmetic(test1)
             case 'label':
-                self.writeLabel('test')
+                self.writeLabel(test1)
             case 'goto':
-                self.writeGoto('test')
+                self.writeGoto(test1)
             case 'if':
-                self.writeIf('test')
+                self.writeIf(test1)
             case 'call':
-                self.writeCall('test', 10)
+                self.writeCall(test1, test2)
             case 'fun':
-                self.writeFunction('test', 10)
+                self.writeFunction(test1, test2)
             case 'return':
                 self.writeReturn()
 
