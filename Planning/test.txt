@@ -1,3 +1,5 @@
+not
+label test
 push arg 0
 pop local 0
 push arg 1

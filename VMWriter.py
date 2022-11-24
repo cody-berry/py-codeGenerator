@@ -51,33 +51,41 @@ class VMWriter:
             Command.NOT: 'not'
         }
 
+    # writes a push command, or 'push segment index'. something like 'push arg 0'
     def writePush(self, segment, index):
         self.output.write('push ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index) + '\n')
 
+    # writes a pop command, or 'pop segment index'. something like 'pop local 0'
     def writePop(self, segment, index):
         self.output.write('pop ' + self.segmentEnumToVMSegmentMapping[segment] + ' ' + str(index) + '\n')
 
+    # writes an arithmetic command, or 'command'. something like 'add'.
     def writeArithmetic(self, command):
         self.output.write(self.commandEnumToVMArithmeticLogicCommandMapping[command] + '\n')
 
-    def test(self, function, test1=None, test2=None):
+    # writes a label command, or 'label labelName'. something like 'label L1'.
+    def writeLabel(self, labelName):
+        self.output.write('label ' + labelName + '\n')
+
+    # tests all functions we've seen so far. it gives a function for testing plus arg1 and arg2, which are possible arguments.
+    def test(self, function, arg1=None, arg2=None):
         match function:
             case 'push':
-                self.writePush(test1, test2)
+                self.writePush(arg1, arg2)
             case 'pop':
-                self.writePop(test1, test2)
+                self.writePop(arg1, arg2)
             case 'arithmetic':
-                self.writeArithmetic(test1)
+                self.writeArithmetic(arg1)
             case 'label':
-                self.writeLabel(test1)
+                self.writeLabel(arg1)
             case 'goto':
-                self.writeGoto(test1)
+                self.writeGoto(arg1)
             case 'if':
-                self.writeIf(test1)
+                self.writeIf(arg1)
             case 'call':
-                self.writeCall(test1, test2)
+                self.writeCall(arg1, arg2)
             case 'fun':
-                self.writeFunction(test1, test2)
+                self.writeFunction(arg1, arg2)
             case 'return':
                 self.writeReturn()
 
