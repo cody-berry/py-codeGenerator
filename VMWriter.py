@@ -71,6 +71,9 @@ class VMWriter:
     def writeGoto(self, labelName):
         self.output.write('goto ' + labelName + '\n')
 
+    def writeIf(self, labelName):
+        self.output.write('if-goto ' + labelName + '\n')
+
     # tests all functions we've seen so far. it gives a function for testing plus arg1 and arg2, which are possible arguments.
     def test(self, function, arg1=None, arg2=None):
         match function:

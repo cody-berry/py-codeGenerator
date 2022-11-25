@@ -1,5 +1,7 @@
+push arg 0
+push arg 1
+gt
 not
-goto L2
 label L1
 push arg 1
 pop local 0
