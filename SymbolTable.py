@@ -61,7 +61,8 @@ class SymbolTable:
             case VarType.VAR:
                 return self.subroutineLevelLocalCount
 
-    # returns the kind of 'name'
+    # returns the kind of 'name', first searching through subroutine symbol
+    # table before falling back to class symbol table
     def kindOf(self, name):
         for subroutineVar in self.subroutineSymbolTable:
             if subroutineVar['varName'] == name:
@@ -71,7 +72,8 @@ class SymbolTable:
                 return classVar['kind']
         return VarType.NONE
 
-    # returns the kind of 'name'
+    # returns the type of 'name', first searching through subroutine symbol
+    # table before falling back to class symbol table
     def typeOf(self, name):
         for subroutineVar in self.subroutineSymbolTable:
             if subroutineVar['varName'] == name:
@@ -81,7 +83,8 @@ class SymbolTable:
                 return classVar['type']
         raise TypeError(f"Either {name} was not found as a variable, or it did not have a type.")
 
-    # returns the kind of 'name'
+    # returns the index of 'name', first searching through subroutine symbol
+    # table before falling back to class symbol table
     def indexOf(self, name):
         for subroutineVar in self.subroutineSymbolTable:
             if subroutineVar['varName'] == name:

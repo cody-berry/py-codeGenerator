@@ -79,9 +79,9 @@ VMWriter
         Return 'push ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
     ☒ writePop(segment, index):
         Return 'pop ' + segmentToVMSegmentMapping[segment] + ' ' + str(index)
-    ☐ writeArithmetic(command):
+    ☒ writeArithmetic(command):
         Return the lowercase version of the command's name.
-    ☐ writeLabel(label):
+    ☒ writeLabel(label):
         Return 'label ' + label
     ☐ writeGoto(label):
         Return 'goto ' + label

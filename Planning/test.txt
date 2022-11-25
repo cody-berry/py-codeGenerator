@@ -1,7 +1,18 @@
 not
-label test
-push arg 0
-pop local 0
+goto L2
+label L1
 push arg 1
+pop local 0
+push arg 2
 neg
 pop local 1
+goto L3
+label L2
+push arg 1
+push arg 2
+add
+pop local 0
+push local 0
+neg
+pop local 1
+label L3
