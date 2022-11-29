@@ -1,5 +1,6 @@
 from jackTokenizer import *
-
+from symbolTable import *
+from VMWriter import *
 
 class CompilationEngine:
     def __init__(self, filename, tokenizer):
@@ -9,7 +10,7 @@ class CompilationEngine:
 
         try:
             self.compile_class()
-        except ValueError:
+        except:
             self.output.write(
                 'ERRORRRRRRRRRR         token ' + self.tokenizer.current_token)
 
