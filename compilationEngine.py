@@ -2,17 +2,18 @@ from jackTokenizer import *
 from symbolTable import *
 from VMWriter import *
 
+
 class CompilationEngine:
     def __init__(self, filename, tokenizer):
         self.tokenizer = tokenizer
-        self.output = open(filename[:-5] + 'C.xml', 'w')
         self.indents = 1
+        self.symbolTable = SymbolTable()
+        self.VMWriter = VMWriter(filename[:-5] + 'C.vm')
 
         try:
             self.compile_class()
         except:
-            self.output.write(
-                'ERRORRRRRRRRRR         token ' + self.tokenizer.current_token)
+            print('ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR token ' + self.tokenizer.current_token)
 
     # advances
     def advance(self):
@@ -31,18 +32,8 @@ class CompilationEngine:
         for token in tokens:
             print(token)
             if self.tokenizer.current_token == token:
-                for i in range(0, self.indents):
-                    self.output.write(
-                        '  ')  # 2 spaces is an indentation, just like in all the xml test files
-
-                self.output.write(
-                    # token_type() gives us the enumeration. '.name' gives us
-                    # the name of the enumeration. '.name.lower()' gives us the
-                    # type of the token in lowercase letters.
-                    '<' + self.tokenizer.token_type().name.lower() + '> ' + token +
-                    ' </' + self.tokenizer.token_type().name.lower() + '>\n'
-                )
                 wrote = True
+                break
 
         if not wrote:
             raise ValueError('The current token is incorrect.')
@@ -51,20 +42,12 @@ class CompilationEngine:
         if advance:
             self.advance()
 
-        if self.tokenizer.token_type() == TokenType.IDENTIFIER:
-            for i in range(0, self.indents):
-                self.output.write('  ')
-
-            self.output.write(
-                '<identifier> ' + self.tokenizer.current_token + ' </identifier>\n')
-        else:
+        if self.tokenizer.token_type() != TokenType.IDENTIFIER:
             print(self.tokenizer.token_type())
             raise ValueError('The current token is incorrect.')
 
     # grammar: 'class' identifier '{' classVarDec* subroutineDec* '}'
     def compile_class(self):
-        self.output.write('<class>\n')
-
         # 'class'
         self.check_token(True, ['class'])
 
@@ -89,14 +72,8 @@ class CompilationEngine:
         # '}'
         self.check_token(False, ['}'])
 
-        self.output.write('</class>\n')
-
     # grammar: 'static'/'field' type varName *(',' varName) ';'
     def compile_class_var_dec(self):
-        # standard opening. we will use it for the beginning of all functions after this
-        self.output.write('  <classVarDec>\n')
-        self.indents += 1
-
         # 'static'/'field'
         self.check_token(False, ['static', 'field'])
 
@@ -120,10 +97,6 @@ class CompilationEngine:
         # ';'
         self.check_token(False, ';')
 
-        # standard ending. we will use something like this for the ending of all functions after this one.
-        self.indents -= 1
-        self.output.write('  </classVarDec>\n')
-
     # grammar: 'int', 'boolean', 'char', or an identifier. sometimes you'll
     # want to advance, other times you won't. for example, if you just called
     # check_token() or compile_identifier(), you'll want to advance. if you
@@ -143,9 +116,6 @@ class CompilationEngine:
     # grammar: constructor/function/method void/type subroutineName
     # '(' parameterList ')' subroutineBody
     def compile_subroutine_dec(self):
-        self.output.write('  <subroutineDec>\n')
-        self.indents += 1
-
         # constructor/function/method. note that because we just checked that it
         # was a constructor, functon, or method, we don't need to advance.
         self.check_token(False, ['constructor', 'function', 'method'])
@@ -177,14 +147,9 @@ class CompilationEngine:
         # subroutineBody, the function
         self.compile_subroutine_body()
 
-        self.indents -= 1
-        self.output.write('  </subroutineDec>\n')
 
     # grammar: ?(type varname *(',' type varName))
     def compile_parameter_list(self):
-        self.output.write('    <parameterList>\n')
-        self.indents += 1
-
         # ?(type
         self.advance()
         if self.tokenizer.token_type() in [TokenType.KEYWORD,
@@ -208,14 +173,8 @@ class CompilationEngine:
                 # prepare for the next iteration of this
                 self.tokenizer.advance()
 
-        self.indents -= 1
-        self.output.write('    </parameterList>\n')
-
     # grammar: '{' varDec* statements '}'
     def compile_subroutine_body(self):
-        self.output.write('    <subroutineBody>\n')
-        self.indents += 1
-
         # '{'
         self.check_token(True, ['{'])
 
@@ -231,15 +190,9 @@ class CompilationEngine:
         # '}'
         self.check_token(False, ['}'])
 
-        self.indents -= 1
-        self.output.write('    </subroutineBody>\n')
-
     # grammar: 'var' type varName *(',' varName) ';'. the only time this is called
     # we have already started advance()
     def compile_var_dec(self):
-        self.output.write('      <varDec>\n')
-        self.indents += 1
-
         # 'var'
         self.check_token(False, ['var'])
 
@@ -259,27 +212,14 @@ class CompilationEngine:
         # repeat ';'
         self.check_token(False, [';'])
 
-        self.indents -= 1
-        self.output.write('      </varDec>\n')
-
     # grammar: statement*
     def compile_statements(self):
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<statements>\n')
-        self.indents += 1
-
         # not only does compile_statement() write down everything needed for a statement,
         # but it returns true if there is a statement and false if there isn't. it also takes care of advancing
         # by itself because of the formula of the if statement, ending right after the optional else statement
         # meaning that all other statements have advanced after.
         while self.compile_statement():
             pass
-
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</statements>\n')
 
     # grammar: letStatement | doStatement | whileStatement | ifStatement | returnStatement
     def compile_statement(self):
@@ -308,11 +248,6 @@ class CompilationEngine:
 
     # grammar: 'let' varName ?('[' expression ']') '=' expression ';'
     def compile_let(self):
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<letStatement>\n')
-        self.indents += 1
-
         # 'let', which defines the name of this function
         self.check_token(False, ['let'])
 
@@ -344,18 +279,8 @@ class CompilationEngine:
         # ';'
         self.check_token(False, [';'])
 
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</letStatement>\n')
-
     # grammar: 'do' identifier ?('.' identifier) '(' expressionList ')'.
     def compile_do(self):
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<doStatement>\n')
-        self.indents += 1
-
         # 'do'
         self.check_token(False, ['do'])
 
@@ -384,19 +309,8 @@ class CompilationEngine:
         # ';'
         self.check_token(True, [';'])
 
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</doStatement>\n')
-
     # grammar: ?(expression *(',' expression))
     def compile_expression_list(self):
-        # standard opening
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<expressionList>\n')
-        self.indents += 1
-
         # ?(expression
         self.advance()
         if ((self.tokenizer.token_type() in [TokenType.IDENTIFIER,
@@ -413,46 +327,24 @@ class CompilationEngine:
                 # expression
                 self.compile_expression(True)
 
-        self.indents -= 1
-        # standard ending
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</expressionList>\n')
-
     # grammar: term *(op term)
     def compile_expression(self, advance):
-        # standard opening
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<expression>\n')
-        self.indents += 1
-
         # term
         self.compile_term(advance)
 
         # *(op
-        if self.tokenizer.current_token in ['+', '-', '*', '/', '&amp;', '|', '&lt;',
+        if self.tokenizer.current_token in ['+', '-', '*', '/', '&amp;', '|',
+                                            '&lt;',
                                             '&gt;', '=']:
             self.check_token(False,
-                             ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '='])
+                             ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;',
+                              '='])
 
             # term
             self.compile_term(True)
 
-        # standard ending
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</expression>\n')
-
     # grammar: integerConstant | stringConstant | 'true' | 'false' | 'null' | 'this' | identifier | identifier ('[' expression ']' | ?('.' identifier) '(' expressionList ')') | '(' expression ')' | '-' term | '~' term
     def compile_term(self, advance):
-        # standard opening
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<term>\n')
-        self.indents += 1
-
         if advance:
             self.advance()
         match self.tokenizer.token_type():
@@ -520,20 +412,8 @@ class CompilationEngine:
                     f'<stringConstant> {self.tokenizer.string_val()} </stringConstant>\n')
                 self.advance()
 
-        # standard ending
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</term>\n')
-
     # grammar: 'return' expression? ';'
     def compile_return(self):
-        # standard opening
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<returnStatement>\n')
-        self.indents += 1
-
         # 'return'
         self.check_token(False, ['return'])
 
@@ -548,20 +428,8 @@ class CompilationEngine:
         # ';'
         self.check_token(False, [';'])
 
-        # standard ending
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</returnStatement>\n')
-
     # 'if' '(' expression ')' '{' statements '}' ?('else' '{' statements '}')
     def compile_if(self):
-        # standard opening
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<ifStatement>\n')
-        self.indents += 1
-
         # 'if'
         self.check_token(False, ['if'])
 
@@ -601,20 +469,8 @@ class CompilationEngine:
 
             self.advance()
 
-        # standard ending
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</ifStatement>\n')
-
     # grammar: 'while' '(' expression ')' '{' statements '}'
     def compile_while(self):
-        # standard opening
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('<whileStatement>\n')
-        self.indents += 1
-
         # 'while'
         self.check_token(False, ['while'])
 
@@ -636,9 +492,3 @@ class CompilationEngine:
 
         # '}'
         self.check_token(False, ['}'])
-
-        # standard ending
-        self.indents -= 1
-        for i in range(0, self.indents):
-            self.output.write('  ')
-        self.output.write('</whileStatement>\n')
