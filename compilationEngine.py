@@ -13,14 +13,12 @@ class CompilationEngine:
         try:
             self.compile_class()
         except:
-            print('ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR token ' + self.tokenizer.current_token)
+            print('ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR token ' + self.tokenizer.current_token + ' ' + self.tokenizer.token_type().name)
 
     # advances
     def advance(self):
         if self.tokenizer.hasMoreTokens():
-            print('advancing')
             self.tokenizer.advance()
-            print(self.tokenizer.current_token + '|')
 
     # advances a token if the argument 'advance' is true and checks if it is
     # in the list of tokens, literally 'tokens'.
@@ -30,7 +28,6 @@ class CompilationEngine:
 
         wrote = False
         for token in tokens:
-            print(token)
             if self.tokenizer.current_token == token:
                 wrote = True
                 break
@@ -43,7 +40,6 @@ class CompilationEngine:
             self.advance()
 
         if self.tokenizer.token_type() != TokenType.IDENTIFIER:
-            print(self.tokenizer.token_type())
             raise ValueError('The current token is incorrect.')
 
     # grammar: 'class' identifier '{' classVarDec* subroutineDec* '}'
@@ -73,15 +69,27 @@ class CompilationEngine:
         self.check_token(False, ['}'])
 
     # grammar: 'static'/'field' type varName *(',' varName) ';'
+    # code effect: generates a variable with a type of 'type', a kind of
+    # 'static' or 'field', and a name of 'name'.
     def compile_class_var_dec(self):
         # 'static'/'field'
         self.check_token(False, ['static', 'field'])
+        varKind = VarType.NONE
+        match self.tokenizer.current_token:
+            case 'static':
+                varKind = VarType.STATIC
+            case 'field':
+                varKind = VarType.FIELD
 
         # type, which does not end advanced
         self.compile_type(True)
+        varType = self.tokenizer.current_token
 
         # varName
         self.compile_identifier(True)
+        varName = self.tokenizer.current_token
+
+        self.symbolTable.define(varName, varType, varKind)
 
         self.advance()
         # *( and checks if the token is a comma
@@ -90,9 +98,12 @@ class CompilationEngine:
 
             # varName
             self.compile_identifier(True)
+            varName = self.tokenizer.current_token
 
             # advance so that we're ready to check if the current token is a comma again
             self.advance()
+
+            self.symbolTable.define(varName, varType, varKind)
 
         # ';'
         self.check_token(False, ';')
@@ -149,15 +160,21 @@ class CompilationEngine:
 
 
     # grammar: ?(type varname *(',' type varName))
+    # effect on code: generate however many args are in the parameter list with
+    # type 'type', kind 'arg', and name 'name'.
     def compile_parameter_list(self):
         # ?(type
         self.advance()
         if self.tokenizer.token_type() in [TokenType.KEYWORD,
                                            TokenType.IDENTIFIER]:
             self.compile_type(False)
+            varType = self.tokenizer.current_token
 
             # varName
             self.compile_identifier(True)
+            varName = self.tokenizer.current_token
+
+            self.symbolTable.define(varName, varType, VarType.ARG)
 
             # *(','
             self.tokenizer.advance()
@@ -166,9 +183,13 @@ class CompilationEngine:
 
                 # type
                 self.compile_type(True)
+                varType = self.tokenizer.current_token
 
                 # varName
                 self.compile_identifier(True)
+                varName = self.tokenizer.current_token
+
+                self.symbolTable.define(varName, varType, VarType.ARG)
 
                 # prepare for the next iteration of this
                 self.tokenizer.advance()
@@ -192,6 +213,9 @@ class CompilationEngine:
 
     # grammar: 'var' type varName *(',' varName) ';'. the only time this is called
     # we have already started advance()
+    # effect on code: add a variable with a name varName, type 'type', and
+    # kind 'local' to the symbol table. repeat for however many variables are
+    # in the var dec
     def compile_var_dec(self):
         # 'var'
         self.check_token(False, ['var'])
@@ -199,14 +223,22 @@ class CompilationEngine:
         # type
         self.compile_type(True)  # do advance
 
+        varType = self.tokenizer.current_token
+
         # varName
         self.compile_identifier(True)
+
+        varName = self.tokenizer.current_token
+
+        self.symbolTable.define(varName, varType, VarType.VAR)
 
         # grammar: repeat ',' varName
         self.advance()
         while self.tokenizer.current_token == ',':
             self.check_token(False, [','])
             self.compile_identifier(True)
+            varName = self.tokenizer.current_token
+            self.symbolTable.define(varName, varType, VarType.VAR)
             self.advance()
 
         # repeat ';'
@@ -223,7 +255,6 @@ class CompilationEngine:
 
     # grammar: letStatement | doStatement | whileStatement | ifStatement | returnStatement
     def compile_statement(self):
-        print('token ' + self.tokenizer.current_token + '|')
         match self.tokenizer.current_token:
             case 'let':  # letStatement
                 self.compile_let()
@@ -333,12 +364,10 @@ class CompilationEngine:
         self.compile_term(advance)
 
         # *(op
-        if self.tokenizer.current_token in ['+', '-', '*', '/', '&amp;', '|',
-                                            '&lt;',
-                                            '&gt;', '=']:
+        if self.tokenizer.current_token in ['+', '-', '*', '/', '&', '|',
+                                            '<', '>', '=']:
             self.check_token(False,
-                             ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;',
-                              '='])
+                             ['+', '-', '*', '/', '&', '|', '<', '>', '='])
 
             # term
             self.compile_term(True)
@@ -400,16 +429,8 @@ class CompilationEngine:
 
             # others: intConst | stringConst
             case TokenType.INT_CONST:
-                for i in range(0, self.indents):
-                    self.output.write('  ')
-                self.output.write(
-                    f'<integerConstant> {self.tokenizer.current_token} </integerConstant>\n')
                 self.advance()
             case TokenType.STRING_CONST:
-                for i in range(0, self.indents):
-                    self.output.write('  ')
-                self.output.write(
-                    f'<stringConstant> {self.tokenizer.string_val()} </stringConstant>\n')
                 self.advance()
 
     # grammar: 'return' expression? ';'

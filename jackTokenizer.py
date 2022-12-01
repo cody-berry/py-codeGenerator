@@ -54,8 +54,6 @@ class JackTokenizer:
 
         self.file.append('\n')
 
-        print(self.file)
-
     def hasMoreTokens(self):
         return not ((self.line_number >= len(self.file) - 1) and (
                 self.current_index + len(self.current_token) >= (
@@ -63,47 +61,45 @@ class JackTokenizer:
 
     def advance(self):
 
-        # print(f'Token starting index: |{self.current_index}|')
-
         rest_of_line = self.file[self.line_number][self.current_index:]
-        # print(f'Rest of line: |{rest_of_line}|')
 
         possible_token_ending_indices = [len(rest_of_line)]
 
-        try:
-            possible_token_ending_indices.append(rest_of_line.index(' ') + 1)
-        except:
-            pass
-
-        for token_breaker in ['+', '-', '~', '*', '/', '&', '|', '<', '>', '=',
-                              '}', '{', ')', '(', '[', ']', '.', ',', ';']:
+        if rest_of_line[0] == '"':
+            # string handling
+            self.current_token = rest_of_line[:(rest_of_line[1:].index('"')+2)]
+        else:
             try:
-                index = rest_of_line.index(token_breaker)
-                if index > 0:
-                    possible_token_ending_indices.append(index)
-                else:
-                    try:
-                        if rest_of_line[1] == ' ':
-                            possible_token_ending_indices.append(2)
-                        else:
-                            possible_token_ending_indices.append(1)
-                    except:
-                        possible_token_ending_indices.append(1)
+                possible_token_ending_indices.append(rest_of_line.index(' ') + 1)
             except:
                 pass
 
-        if len(possible_token_ending_indices) > 1:
-            for i in range(0, len(possible_token_ending_indices) - 1):
-                possible_token_ending_indices[0] = min(
-                    possible_token_ending_indices[0],
-                    possible_token_ending_indices[i + 1])
+            for token_breaker in ['+', '-', '~', '*', '/', '&', '|', '<', '>', '=',
+                                  '}', '{', ')', '(', '[', ']', '.', ',', ';']:
+                try:
+                    index = rest_of_line.index(token_breaker)
+                    if index > 0:
+                        possible_token_ending_indices.append(index)
+                    else:
+                        try:
+                            if rest_of_line[1] == ' ':
+                                possible_token_ending_indices.append(2)
+                            else:
+                                possible_token_ending_indices.append(1)
+                        except:
+                            possible_token_ending_indices.append(1)
+                except:
+                    pass
 
-        token_end = possible_token_ending_indices[0]
+            if len(possible_token_ending_indices) > 1:
+                for i in range(0, len(possible_token_ending_indices) - 1):
+                    possible_token_ending_indices[0] = min(
+                        possible_token_ending_indices[0],
+                        possible_token_ending_indices[i + 1])
 
-        self.current_token = rest_of_line[:token_end]
+            token_end = possible_token_ending_indices[0]
 
-        # if self.current_token[0] == "\"":
-        #     self.current_token = rest_of_line[:rest_of_line.index("\"") + 1]
+            self.current_token = rest_of_line[:token_end]
 
         # for now, just advance for every word
         # but first, we have to find the starting line index of our token which will be our self.currentIndex.
@@ -117,19 +113,9 @@ class JackTokenizer:
         if self.current_token[0] == ' ':
             self.advance()
 
-        print(f'|{self.current_token}| {rest_of_line}')
-
         if self.current_token:
             while self.current_token[-1] == ' ':
                 self.current_token = self.current_token[:-1]
-
-        match self.current_token:
-            case '<':
-                self.current_token = '&lt;'
-            case '>':
-                self.current_token = '&gt;'
-            case '&':
-                self.current_token = '&amp;'
 
     def token_type(self):
         if self.current_token in ['class', 'constructor', 'function', 'method',
@@ -139,7 +125,7 @@ class JackTokenizer:
                                   'return']:
             return TokenType.KEYWORD
         if self.current_token in ['{', '}', '(', ')', '[', ']', '.', ',', ';',
-                                  '+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '=',
+                                  '+', '-', '*', '/', '&', '|', '<', '>', '=',
                                   '~']:
             return TokenType.SYMBOL
         if self.current_token[0] in ['0', '1', '2', '3', '4', '5', '6', '7',
@@ -151,19 +137,7 @@ class JackTokenizer:
             return TokenType.IDENTIFIER
 
     def string_val(self):
-        # self.advance()  # like this we're skipping the first token (") so that the next token is our actual string constant
-        # return_val = self.current_token
-        # self.advance()  # like this we're skipping the last token (") so that the next token is the token right after the string
-        if self.current_token[-1] != '"':
-            return_val = self.current_token[1:]
-            self.advance()
-            while self.current_token[-1] != '"':
-                return_val += ' ' + self.current_token
-                self.advance()
-            return_val += ' ' + self.current_token[:-1]
-            return return_val
-        else:
-            return self.current_token[1:-1]
+        return str(self.current_token[1:-1])
 
     def int_val(self):
         return int(self.current_token)
