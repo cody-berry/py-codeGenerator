@@ -26,6 +26,9 @@ class SymbolTable:
     def startSubroutine(self):
         # re-initialize subroutine symbol table
         self.subroutineSymbolTable = []
+        # reset subroutine-level arg/local counts
+        self.subroutineLevelLocalCount = 0
+        self.subroutineLevelArgCount = 0
 
     # defines a new variable in the symbol table
     def define(self, name, varType, kind):

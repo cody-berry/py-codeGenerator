@@ -9,6 +9,7 @@ class CompilationEngine:
         self.indents = 1
         self.symbolTable = SymbolTable()
         self.VMWriter = VMWriter(filename[:-5] + 'C.vm')
+        self.functionNamePrefix = ''
 
         try:
             self.compile_class()
@@ -43,12 +44,15 @@ class CompilationEngine:
             raise ValueError('The current token is incorrect.')
 
     # grammar: 'class' identifier '{' classVarDec* subroutineDec* '}'
+    # code effect: sets the function name prefix to the class name
     def compile_class(self):
         # 'class'
         self.check_token(True, ['class'])
 
         # identifier
         self.compile_identifier(True)
+
+        self.functionNamePrefix = self.tokenizer.current_token
 
         # '{'
         self.check_token(True, ['{'])
@@ -126,15 +130,19 @@ class CompilationEngine:
 
     # grammar: constructor/function/method void/type subroutineName
     # '(' parameterList ')' subroutineBody
+    # code effect:
     def compile_subroutine_dec(self):
         # constructor/function/method. note that because we just checked that it
         # was a constructor, functon, or method, we don't need to advance.
         self.check_token(False, ['constructor', 'function', 'method'])
+        isMethod = self.tokenizer.current_token == 'method'
 
         # 'void' or a type.
         self.tokenizer.advance()
+        isVoid = False
         if self.tokenizer.current_token == 'void':
             self.check_token(False, ['void'])
+            isVoid = True
         else:
             # this is an 'or' case where we need to check if it's 'void' or a type.
             # because of this, we've already advanced, so we shouldn't advance.
@@ -145,24 +153,33 @@ class CompilationEngine:
         # subroutineName, which is the equivalent of an identifier. we advance
         self.compile_identifier(True)
 
+        funcName = self.functionNamePrefix + '.' + self.tokenizer.current_token
+
         # '(', the symbol
         self.check_token(True, ['('])
 
         # parameterList, a function. based on the formula, it ends advanced to
         # the next token
-        self.compile_parameter_list()
+        self.symbolTable.startSubroutine()
+        self.compile_parameter_list(isMethod)
 
         # read the last comment to show description of why we don't advance for our right paren
         self.check_token(False, [')'])
 
         # subroutineBody, the function
-        self.compile_subroutine_body()
+        self.compile_subroutine_body(funcName, isVoid)
 
 
     # grammar: ?(type varname *(',' type varName))
     # effect on code: generate however many args are in the parameter list with
-    # type 'type', kind 'arg', and name 'name'.
-    def compile_parameter_list(self):
+    # type 'type', kind 'arg', and name 'name'. if the function is a method,
+    # add 'this' as the first argument with a type of whatever the class name
+    # is.
+    def compile_parameter_list(self, isMethod):
+        if isMethod:
+            self.symbolTable.define('this', self.functionNamePrefix,
+                                    VarType.ARG)
+
         # ?(type
         self.advance()
         if self.tokenizer.token_type() in [TokenType.KEYWORD,
@@ -195,7 +212,11 @@ class CompilationEngine:
                 self.tokenizer.advance()
 
     # grammar: '{' varDec* statements '}'
-    def compile_subroutine_body(self):
+    # code effect: writes all statements down, has the var decs, and makes a
+    # call to VMWriter's writeFunction command. if isVoid is true, it is sent
+    # to compile_statements() to inform it that its return statement will be
+    # void.
+    def compile_subroutine_body(self, funcName, isVoid):
         # '{'
         self.check_token(True, ['{'])
 
@@ -204,6 +225,8 @@ class CompilationEngine:
         while self.tokenizer.current_token == 'var':
             self.compile_var_dec()
             self.tokenizer.advance()
+
+        self.VMWriter.writeFunction(funcName, self.symbolTable.varCount(VarType.VAR))
 
         # statements
         self.compile_statements()

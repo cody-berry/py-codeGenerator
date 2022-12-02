@@ -1,6 +1,6 @@
 from jackTokenizer import *
 from compilationEngine import *
-file = 'Square/Square.jack'
+file = 'Square/SquareGame.jack'
 tokenizer = JackTokenizer(file)
 compileEngine = CompilationEngine(file, tokenizer)
 
