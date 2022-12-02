@@ -30,7 +30,7 @@ pointer 0. A void method returns 0, or 'false'. The value gets dumped.
 11:30 am Thursday, November 10, 2022
 [1130]→ Unit 5.8: Handling Arrays
 An array is a class. Initialization is handled exactly like object constructor. THIS=objects and THAT=arrays.
-To access arr[exp₁] = exp₂, use the code:
+To access arr[exp₁] = exp₂, you'd usually use the code:
 push arr
 codeWrite(exp₁)
 add

@@ -1,0 +1,18 @@
+class Test {
+   field int test;
+   method void firstTest() {
+      var int a;
+      let test = a;
+   }
+   method void secondTest() {
+      var int b;
+      let b = test;
+   }
+   method void thirdTest(int firstArgTest) {
+      var array c;
+      let c[test] = firstArgTest;
+   }
+}
+
+
+

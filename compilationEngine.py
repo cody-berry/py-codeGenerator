@@ -14,7 +14,8 @@ class CompilationEngine:
         try:
             self.compile_class()
         except:
-            print('ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR token ' + self.tokenizer.current_token + ' ' + self.tokenizer.token_type().name)
+            print(
+                'ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR token ' + self.tokenizer.current_token + ' ' + self.tokenizer.token_type().name)
 
     # advances
     def advance(self):
@@ -169,7 +170,6 @@ class CompilationEngine:
         # subroutineBody, the function
         self.compile_subroutine_body(funcName, isVoid)
 
-
     # grammar: ?(type varname *(',' type varName))
     # effect on code: generate however many args are in the parameter list with
     # type 'type', kind 'arg', and name 'name'. if the function is a method,
@@ -226,10 +226,11 @@ class CompilationEngine:
             self.compile_var_dec()
             self.tokenizer.advance()
 
-        self.VMWriter.writeFunction(funcName, self.symbolTable.varCount(VarType.VAR))
+        self.VMWriter.writeFunction(funcName,
+                                    self.symbolTable.varCount(VarType.VAR))
 
         # statements
-        self.compile_statements()
+        self.compile_statements(isVoid)
 
         # '}'
         self.check_token(False, ['}'])
@@ -268,16 +269,16 @@ class CompilationEngine:
         self.check_token(False, [';'])
 
     # grammar: statement*
-    def compile_statements(self):
+    def compile_statements(self, isVoid):
         # not only does compile_statement() write down everything needed for a statement,
         # but it returns true if there is a statement and false if there isn't. it also takes care of advancing
         # by itself because of the formula of the if statement, ending right after the optional else statement
         # meaning that all other statements have advanced after.
-        while self.compile_statement():
+        while self.compile_statement(isVoid):
             pass
 
     # grammar: letStatement | doStatement | whileStatement | ifStatement | returnStatement
-    def compile_statement(self):
+    def compile_statement(self, isVoid):
         match self.tokenizer.current_token:
             case 'let':  # letStatement
                 self.compile_let()
@@ -288,7 +289,7 @@ class CompilationEngine:
                 self.advance()
                 return True
             case 'return':  # returnStatement
-                self.compile_return()
+                self.compile_return(isVoid)
                 self.advance()
                 return True
             case 'while':  # whileStatement
@@ -301,6 +302,13 @@ class CompilationEngine:
         return False
 
     # grammar: 'let' varName ?('[' expression ']') '=' expression ';'
+    # code effect: accesses the kind and index of the first identifier and push
+    # it onto the stack. if an array has been accessed, we compile the
+    # expression and push it. Then we add. also, we keep track of whether we are
+    # popping unto an array or not. Then we evaluate the second expression. If
+    # we didn't look at the array, we simply pop to varName. If we did have to
+    # look at an array, we write this sequence of commands: pop temp 0, pop
+    # pointer 1, push temp 0, pop that 0.
     def compile_let(self):
         # 'let', which defines the name of this function
         self.check_token(False, ['let'])
@@ -308,10 +316,30 @@ class CompilationEngine:
         # varName = identifier
         self.compile_identifier(True)
 
+        varName = self.tokenizer.current_token
+        varTypeToSegmentMapping = {
+            VarType.VAR: Segments.LOCAL,
+            VarType.ARG: Segments.ARG,
+            VarType.FIELD: Segments.THIS,
+            VarType.STATIC: Segments.STATIC
+        }
+
         # ?('['
         self.advance()
+        accessedArray = False
         if self.tokenizer.current_token == '[':
             self.check_token(False, ['['])
+            accessedArray = True
+
+            # if we really want to access a field, doesn't this imply that we're
+            # in a method and the first argument is this?
+            if self.symbolTable.kindOf(varName) == VarType.FIELD:
+                self.VMWriter.writePush(Segments.ARG, 0)
+                self.VMWriter.writePop(Segments.POINTER, 0)
+            self.VMWriter.writePush(varTypeToSegmentMapping[
+                                    self.symbolTable.kindOf(varName)],
+                                    self.symbolTable
+                                    .indexOf(varName))
 
             # expression
             self.compile_expression(True)
@@ -320,6 +348,8 @@ class CompilationEngine:
             self.check_token(False, [']'])
 
             self.advance()
+
+            self.VMWriter.writeArithmetic(Command.ADD)
 
         # '=' note that after the question mark, both ways we've advanced.
         # the first is that you didn't find the bracket, meaning that the
@@ -332,6 +362,22 @@ class CompilationEngine:
 
         # ';'
         self.check_token(False, [';'])
+
+        if accessedArray:
+            self.VMWriter.writePop(Segments.TEMP, 0)
+            self.VMWriter.writePop(Segments.POINTER, 1)
+            self.VMWriter.writePush(Segments.TEMP, 0)
+            self.VMWriter.writePop(Segments.THAT, 0)
+        else:
+            # if we really want to access a field, doesn't this imply that we're
+            # in a method and the first argument is this?
+            if self.symbolTable.kindOf(varName) == VarType.FIELD:
+                self.VMWriter.writePush(Segments.ARG, 0)
+                self.VMWriter.writePop(Segments.POINTER, 0)
+            self.VMWriter.writePop(varTypeToSegmentMapping[
+                                    self.symbolTable.kindOf(varName)],
+                                    self.symbolTable
+                                    .indexOf(varName))
 
     # grammar: 'do' identifier ?('.' identifier) '(' expressionList ')'.
     def compile_do(self):
@@ -457,7 +503,7 @@ class CompilationEngine:
                 self.advance()
 
     # grammar: 'return' expression? ';'
-    def compile_return(self):
+    def compile_return(self, isVoid):
         # 'return'
         self.check_token(False, ['return'])
 
