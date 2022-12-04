@@ -428,6 +428,8 @@ class CompilationEngine:
                 self.compile_expression(True)
 
     # grammar: term *(op term)
+    # code effect: compiles the first term. then compiles the second term,
+    # the first op, the third term, the second op, and so on.
     def compile_expression(self, advance):
         # term
         self.compile_term(advance)
@@ -437,9 +439,41 @@ class CompilationEngine:
                                             '<', '>', '=']:
             self.check_token(False,
                              ['+', '-', '*', '/', '&', '|', '<', '>', '='])
+            currentOp = self.tokenizer.current_token
 
             # term
             self.compile_term(True)
+
+            # case +: this is the Command.ADD arithmetic command.
+            # case -: this is the Command.SUB arithmetic command, or subtract.
+            # case *: this is the equivalent of calling Math.multiply on 2
+            # arguments.
+            # case /: this is the equivalent of calling Math.divide on 2
+            # arguments.
+            # case &: this is the Command.AND arithmetic command.
+            # case |: this is the Command.OR arithmetic command.
+            # case <: this is the Command.LT arithmetic command, or less than.
+            # case >: this is the Command.GT arithmetic command, or greater than.
+            # case =: this is the Command.EQ arithmetic command, or equal to.
+            match currentOp:
+                case '+':
+                    self.writeArithmetic(Command.ADD)
+                case '-':
+                    self.writeArithmetic(Command.SUB)
+                case '*':
+                    self.writeCall('Math.multiply', 2)
+                case '/':
+                    self.writeCall('Math.divide', 2)
+                case '&':
+                    self.writeArithmetic(Command.AND)
+                case '|':
+                    self.writeArithmetic(Command.OR)
+                case '<':
+                    self.writeArithmetic(Command.LT)
+                case '>':
+                    self.writeArithmetic(Command.GT)
+                case '=':
+                    self.writeArithmetic(Command.EQ)
 
     # grammar: integerConstant | stringConstant | 'true' | 'false' | 'null' | 'this' | identifier | identifier ('[' expression ']' | ?('.' identifier) '(' expressionList ')') | '(' expression ')' | '-' term | '~' term
     def compile_term(self, advance):
