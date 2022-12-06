@@ -13,9 +13,10 @@ class CompilationEngine:
 
         try:
             self.compile_class()
-        except:
+        except ValueError:
             print(
-                'ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR token ' + self.tokenizer.current_token + ' ' + self.tokenizer.token_type().name)
+                'ERROR R R R R R R R  token ' + self.tokenizer.current_token + ' ' + self.tokenizer.token_type().name)
+            print('...[Recalibrating] [System failure]')
 
     # advances
     def advance(self):
@@ -140,10 +141,8 @@ class CompilationEngine:
 
         # 'void' or a type.
         self.tokenizer.advance()
-        isVoid = False
         if self.tokenizer.current_token == 'void':
             self.check_token(False, ['void'])
-            isVoid = True
         else:
             # this is an 'or' case where we need to check if it's 'void' or a type.
             # because of this, we've already advanced, so we shouldn't advance.
@@ -168,7 +167,7 @@ class CompilationEngine:
         self.check_token(False, [')'])
 
         # subroutineBody, the function
-        self.compile_subroutine_body(funcName, isVoid)
+        self.compile_subroutine_body(funcName)
 
     # grammar: ?(type varname *(',' type varName))
     # effect on code: generate however many args are in the parameter list with
@@ -216,7 +215,7 @@ class CompilationEngine:
     # call to VMWriter's writeFunction command. if isVoid is true, it is sent
     # to compile_statements() to inform it that its return statement will be
     # void.
-    def compile_subroutine_body(self, funcName, isVoid):
+    def compile_subroutine_body(self, funcName):
         # '{'
         self.check_token(True, ['{'])
 
@@ -230,7 +229,7 @@ class CompilationEngine:
                                     self.symbolTable.varCount(VarType.VAR))
 
         # statements
-        self.compile_statements(isVoid)
+        self.compile_statements()
 
         # '}'
         self.check_token(False, ['}'])
@@ -269,16 +268,16 @@ class CompilationEngine:
         self.check_token(False, [';'])
 
     # grammar: statement*
-    def compile_statements(self, isVoid):
+    def compile_statements(self):
         # not only does compile_statement() write down everything needed for a statement,
         # but it returns true if there is a statement and false if there isn't. it also takes care of advancing
         # by itself because of the formula of the if statement, ending right after the optional else statement
         # meaning that all other statements have advanced after.
-        while self.compile_statement(isVoid):
+        while self.compile_statement():
             pass
 
     # grammar: letStatement | doStatement | whileStatement | ifStatement | returnStatement
-    def compile_statement(self, isVoid):
+    def compile_statement(self):
         match self.tokenizer.current_token:
             case 'let':  # letStatement
                 self.compile_let()
@@ -289,7 +288,7 @@ class CompilationEngine:
                 self.advance()
                 return True
             case 'return':  # returnStatement
-                self.compile_return(isVoid)
+                self.compile_return()
                 self.advance()
                 return True
             case 'while':  # whileStatement
@@ -337,7 +336,7 @@ class CompilationEngine:
                 self.VMWriter.writePush(Segments.ARG, 0)
                 self.VMWriter.writePop(Segments.POINTER, 0)
             self.VMWriter.writePush(varTypeToSegmentMapping[
-                                    self.symbolTable.kindOf(varName)],
+                                        self.symbolTable.kindOf(varName)],
                                     self.symbolTable
                                     .indexOf(varName))
 
@@ -375,9 +374,9 @@ class CompilationEngine:
                 self.VMWriter.writePush(Segments.ARG, 0)
                 self.VMWriter.writePop(Segments.POINTER, 0)
             self.VMWriter.writePop(varTypeToSegmentMapping[
-                                    self.symbolTable.kindOf(varName)],
-                                    self.symbolTable
-                                    .indexOf(varName))
+                                       self.symbolTable.kindOf(varName)],
+                                   self.symbolTable
+                                   .indexOf(varName))
 
     # grammar: 'do' identifier ?('.' identifier) '(' expressionList ')'.
     def compile_do(self):
@@ -411,6 +410,7 @@ class CompilationEngine:
 
     # grammar: ?(expression *(',' expression))
     def compile_expression_list(self):
+        numExpressions = 0
         # ?(expression
         self.advance()
         if ((self.tokenizer.token_type() in [TokenType.IDENTIFIER,
@@ -419,6 +419,7 @@ class CompilationEngine:
                 or (self.tokenizer.current_token in ['true', 'false', 'null',
                                                      'this', '(', '-', '~'])):
             self.compile_expression(False)
+            numExpressions += 1
 
             # *(','
             while self.tokenizer.current_token == ',':
@@ -426,6 +427,8 @@ class CompilationEngine:
 
                 # expression
                 self.compile_expression(True)
+
+        return numExpressions
 
     # grammar: term *(op term)
     # code effect: compiles the first term. then compiles the second term,
@@ -457,25 +460,45 @@ class CompilationEngine:
             # case =: this is the Command.EQ arithmetic command, or equal to.
             match currentOp:
                 case '+':
-                    self.writeArithmetic(Command.ADD)
+                    self.VMWriter.writeArithmetic(Command.ADD)
                 case '-':
-                    self.writeArithmetic(Command.SUB)
+                    self.VMWriter.writeArithmetic(Command.SUB)
                 case '*':
-                    self.writeCall('Math.multiply', 2)
+                    self.VMWriter.writeCall('Math.multiply', 2)
                 case '/':
-                    self.writeCall('Math.divide', 2)
+                    self.VMWriter.writeCall('Math.divide', 2)
                 case '&':
-                    self.writeArithmetic(Command.AND)
+                    self.VMWriter.writeArithmetic(Command.AND)
                 case '|':
-                    self.writeArithmetic(Command.OR)
+                    self.VMWriter.writeArithmetic(Command.OR)
                 case '<':
-                    self.writeArithmetic(Command.LT)
+                    self.VMWriter.writeArithmetic(Command.LT)
                 case '>':
-                    self.writeArithmetic(Command.GT)
+                    self.VMWriter.writeArithmetic(Command.GT)
                 case '=':
-                    self.writeArithmetic(Command.EQ)
+                    self.VMWriter.writeArithmetic(Command.EQ)
 
     # grammar: integerConstant | stringConstant | 'true' | 'false' | 'null' | 'this' | identifier | identifier ('[' expression ']' | ?('.' identifier) '(' expressionList ')') | '(' expression ')' | '-' term | '~' term
+    # code effect: look at the token type and proceed from there.
+    # case identifier: make a variable named identifier for the current token
+    # case identifier→'[': push the kind and index of the identifier variable.
+    # compile the expression, call add, pop to pointer 1, and push that 1. make
+    # sure to complete the ']'!
+    # case identifier→'.': add the next identifier plus a dot to 'identifier'
+    # and then compile the expression list and call. compiling the expression
+    # list will return the number of args.
+    # case identifier→'(': Same as last time. Make sure you complete the ')',
+    # and no longer add the identifier because there is none.
+    # case keyword: it must be a keyword constant.
+    # case symbol: no information until you read the token.
+    # case symbol→'(': parenthesis with an expression in it. make sure to
+    # complete the ')'!
+    # case symbol→'-': after compiling the term, do 'neg'.
+    # case symbol→'~': after compiling the term, do 'not'.
+    # case int constant: push the int const.
+    # case string constant: push the id of the first character of the string and
+    # call String.new(). then call String.appendChar() for the appended string
+    # and the new string from String.new().
     def compile_term(self, advance):
         if advance:
             self.advance()
@@ -483,6 +506,7 @@ class CompilationEngine:
             case TokenType.IDENTIFIER:
                 # identifier
                 self.compile_identifier(False)
+                identifier = self.tokenizer.current_token
                 self.advance()
 
                 # and then we search for some extensions to the identifier
@@ -498,7 +522,7 @@ class CompilationEngine:
                         self.check_token(False, ['.'])
                         self.compile_identifier(True)
                         self.check_token(True, ['('])
-                        self.compile_expression_list()
+                        nArgs = self.compile_expression_list()
                         self.check_token(False, [')'])
                         self.advance()
                     # '(' expressionList ')'
@@ -537,7 +561,7 @@ class CompilationEngine:
                 self.advance()
 
     # grammar: 'return' expression? ';'
-    def compile_return(self, isVoid):
+    def compile_return(self):
         # 'return'
         self.check_token(False, ['return'])
 

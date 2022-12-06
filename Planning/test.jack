@@ -9,8 +9,13 @@ class Test {
       let b = test;
    }
    method void thirdTest(int firstArgTest) {
-      var array c;
+      var Array c;
       let c[test] = firstArgTest;
+   }
+   method void fourthTest() {
+      var int d;
+      var int e;
+      let test = d+e
    }
 }
 
