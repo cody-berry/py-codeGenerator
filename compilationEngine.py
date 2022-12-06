@@ -11,6 +11,13 @@ class CompilationEngine:
         self.VMWriter = VMWriter(filename[:-5] + 'C.vm')
         self.functionNamePrefix = ''
 
+        self.varTypeToSegmentMapping = {
+            VarType.VAR: Segments.LOCAL,
+            VarType.ARG: Segments.ARG,
+            VarType.FIELD: Segments.THIS,
+            VarType.STATIC: Segments.STATIC
+        }
+
         try:
             self.compile_class()
         except ValueError:
@@ -316,12 +323,6 @@ class CompilationEngine:
         self.compile_identifier(True)
 
         varName = self.tokenizer.current_token
-        varTypeToSegmentMapping = {
-            VarType.VAR: Segments.LOCAL,
-            VarType.ARG: Segments.ARG,
-            VarType.FIELD: Segments.THIS,
-            VarType.STATIC: Segments.STATIC
-        }
 
         # ?('['
         self.advance()
@@ -335,7 +336,7 @@ class CompilationEngine:
             if self.symbolTable.kindOf(varName) == VarType.FIELD:
                 self.VMWriter.writePush(Segments.ARG, 0)
                 self.VMWriter.writePop(Segments.POINTER, 0)
-            self.VMWriter.writePush(varTypeToSegmentMapping[
+            self.VMWriter.writePush(self.varTypeToSegmentMapping[
                                         self.symbolTable.kindOf(varName)],
                                     self.symbolTable
                                     .indexOf(varName))
@@ -373,7 +374,7 @@ class CompilationEngine:
             if self.symbolTable.kindOf(varName) == VarType.FIELD:
                 self.VMWriter.writePush(Segments.ARG, 0)
                 self.VMWriter.writePop(Segments.POINTER, 0)
-            self.VMWriter.writePop(varTypeToSegmentMapping[
+            self.VMWriter.writePop(self.varTypeToSegmentMapping[
                                        self.symbolTable.kindOf(varName)],
                                    self.symbolTable
                                    .indexOf(varName))
@@ -513,28 +514,61 @@ class CompilationEngine:
                 match self.tokenizer.current_token:
                     # '[' expression ']'
                     case '[':
+                        if self.symbolTable.kindOf(identifier) == VarType.FIELD:
+                            self.VMWriter.writePush(Segments.ARG, 0)
+                            self.VMWriter.writePop(Segments.POINTER, 0)
+                        self.VMWriter.writePush(self.varTypeToSegmentMapping[
+                                                    self.symbolTable.kindOf(
+                                                        identifier)],
+                                                self.symbolTable
+                                                .indexOf(identifier))
                         self.check_token(False, ['['])
                         self.compile_expression(True)
+                        self.VMWriter.writeArithmetic(Command.ADD)
+                        self.VMWriter.writePop(Segments.POINTER, 1)
+                        self.VMWriter.writePush(Segments.THAT, 0)
                         self.check_token(False, [']'])
                         self.advance()
                     # '.' identifier '(' expressionList ')'
                     case '.':
                         self.check_token(False, ['.'])
                         self.compile_identifier(True)
+                        identifier += '.' + self.tokenizer.current_token
                         self.check_token(True, ['('])
                         nArgs = self.compile_expression_list()
                         self.check_token(False, [')'])
+                        self.VMWriter.writeCall(identifier, nArgs)
                         self.advance()
                     # '(' expressionList ')'
                     case '(':
                         self.check_token(False, ['('])
-                        self.compile_expression_list()
+                        nArgs = self.compile_expression_list()
                         self.check_token(False, [')'])
+                        self.VMWriter.writeCall(identifier, nArgs)
                         self.advance()
+                    case _:
+                        if self.symbolTable.kindOf(identifier) == VarType.FIELD:
+                            self.VMWriter.writePush(Segments.ARG, 0)
+                            self.VMWriter.writePop(Segments.POINTER, 0)
+                        self.VMWriter.writePush(self.varTypeToSegmentMapping[
+                                                    self.symbolTable.kindOf(
+                                                        identifier)],
+                                                self.symbolTable
+                                                .indexOf(identifier))
 
             case TokenType.KEYWORD:
                 # 'this' | 'null' | 'true' | 'false'
                 self.check_token(False, ['this', 'null', 'true', 'false'])
+                match self.tokenizer.current_token:
+                    case 'this':
+                        self.VMWriter.writePush(Segments.POINTER, 0)
+                    case 'null':
+                        self.VMWriter.writePush(Segments.CONST, 0)
+                    case 'false':
+                        self.VMWriter.writePush(Segments.CONST, 0)
+                    case 'true':
+                        self.VMWriter.writePush(Segments.CONST, 1)
+                        self.VMWriter.writeArithmetic(Command.NEG)
                 self.advance()
 
             case TokenType.SYMBOL:
@@ -549,13 +583,16 @@ class CompilationEngine:
                     case '-':
                         self.check_token(False, ['-'])
                         self.compile_term(True)
+                        self.VMWriter.writeArithmetic(Command.NEG)
                     # '~' term
                     case '~':
                         self.check_token(False, ['~'])
                         self.compile_term(True)
+                        self.VMWriter.writeArithmetic(Command.NOT)
 
             # others: intConst | stringConst
             case TokenType.INT_CONST:
+                self.VMWriter.writePush(Segments.CONST, self.tokenizer.current_token)
                 self.advance()
             case TokenType.STRING_CONST:
                 self.advance()
