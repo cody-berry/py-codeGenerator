@@ -52,3 +52,9 @@ push arg 1
 call Math.multiply 2
 add
 return
+function Test.sixthTest 0
+push constant 1
+return
+function Test.seventhTest 0
+push arg 1
+call Test.fifthTest 1

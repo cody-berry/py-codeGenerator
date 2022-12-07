@@ -28,6 +28,13 @@ class Test {
       let i = thirdTest(h);
       return i+(h*g);
    }
+   method void sixthTest() {
+      return 1;
+   }
+   method void seventhTest(int j) {
+      do Test.fifthTest(j);
+      return Test.thirdTest(j);
+   }
 }
 
 

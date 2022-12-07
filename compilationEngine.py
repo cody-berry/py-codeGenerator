@@ -380,12 +380,20 @@ class CompilationEngine:
                                    .indexOf(varName))
 
     # grammar: 'do' identifier ?('.' identifier) '(' expressionList ')'.
+    # code effect: we create a variable called 'identifier' for the first
+    # identifier token. if there is a second identifier, add to that identifier
+    # variable a '.' and then the second identifier. then, with the nArgs given
+    # from compile_expression_list(), write a 'call' to the 'identifier'
+    # variable and the number of args being the number given from
+    # compile_expression_list().
     def compile_do(self):
         # 'do'
         self.check_token(False, ['do'])
 
         # identifier
         self.compile_identifier(True)
+
+        identifier = self.tokenizer.current_token
 
         # ?('.'
         self.advance()
@@ -395,13 +403,16 @@ class CompilationEngine:
             # identifier
             self.compile_identifier(True)
 
+            identifier += '.' + self.tokenizer.current_token
+
             self.tokenizer.advance()
 
         # left paren. we don't advance because of the same reason we don't advance for the equal sign in compileLet().
         self.check_token(False, ['('])
 
         # expressionList. Since this comes out already advanced to the next token, we don't advance on the next.
-        self.compile_expression_list()
+        nArgs = self.compile_expression_list()
+        self.VMWriter.writeCall(identifier, nArgs)
 
         # read the last comment to see why we don't advance on right paren
         self.check_token(False, [')'])
@@ -606,7 +617,8 @@ class CompilationEngine:
         # expression?
         self.advance()
         if ((self.tokenizer.token_type() in [TokenType.IDENTIFIER,
-                                             TokenType.STRING_CONST])
+                                             TokenType.STRING_CONST,
+                                             TokenType.INT_CONST])
                 or (self.tokenizer.current_token in ['true', 'false', 'null',
                                                      'this', '-', '~'])):
             self.compile_expression(False)
