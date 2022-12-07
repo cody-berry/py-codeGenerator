@@ -3,19 +3,30 @@ class Test {
    method void firstTest() {
       var int a;
       let test = a;
+      return;
    }
    method void secondTest() {
       var int b;
       let b = test;
+      return b;
    }
-   method void thirdTest(int firstArgTest) {
-      var Array c;
-      let c[test] = firstArgTest;
+   method void thirdTest(int c) {
+      var Array d;
+      let d[test] = c;
+      return c + test;
    }
    method void fourthTest() {
-      var int d;
       var int e;
-      let test = d+e
+      var int f;
+      let test = e+f;
+      return test;
+   }
+   method void fifthTest(int g) {
+      var int h;
+      var int i;
+      let h = 5;
+      let i = thirdTest(h);
+      return i+(h*g);
    }
 }
 

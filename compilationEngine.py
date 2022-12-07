@@ -598,6 +598,7 @@ class CompilationEngine:
                 self.advance()
 
     # grammar: 'return' expression? ';'
+    # code effect: after pushing const 0 or compiling an expression, return.
     def compile_return(self):
         # 'return'
         self.check_token(False, ['return'])
@@ -609,9 +610,13 @@ class CompilationEngine:
                 or (self.tokenizer.current_token in ['true', 'false', 'null',
                                                      'this', '-', '~'])):
             self.compile_expression(False)
+        else:
+            self.VMWriter.writePush(Segments.CONST, 0)
 
         # ';'
         self.check_token(False, [';'])
+
+        self.VMWriter.writeReturn()
 
     # 'if' '(' expression ')' '{' statements '}' ?('else' '{' statements '}')
     def compile_if(self):
