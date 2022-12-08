@@ -1,6 +1,6 @@
 from jackTokenizer import *
 from compilationEngine import *
-file = 'Seven/Main.jack'
+file = 'Average/Main.jack'
 tokenizer = JackTokenizer(file)
 compileEngine = CompilationEngine(file, tokenizer)
 

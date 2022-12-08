@@ -8,7 +8,7 @@ class CompilationEngine:
         self.tokenizer = tokenizer
         self.indents = 1
         self.symbolTable = SymbolTable()
-        self.VMWriter = VMWriter(filename[:-5] + 'C.vm')
+        self.VMWriter = VMWriter(filename[:-5] + '.vm')
         self.functionNamePrefix = ''
 
         self.varTypeToSegmentMapping = {
@@ -17,6 +17,8 @@ class CompilationEngine:
             VarType.FIELD: Segments.THIS,
             VarType.STATIC: Segments.STATIC
         }
+
+        self.ifAndWhileLabels = 0
 
         try:
             self.compile_class()
@@ -640,6 +642,9 @@ class CompilationEngine:
 
         # expression
         self.compile_expression(True)
+        self.VMWriter.writeArithmetic(Command.NEG)
+        self.ifAndWhileLabels += 1
+        self.VMWriter.writeIf('L' + str(self.ifAndWhileLabels))
 
         # ')'
         self.check_token(False, [')'])
@@ -651,8 +656,12 @@ class CompilationEngine:
         self.advance()
         self.compile_statements()
 
+        self.VMWriter.writeGoto('L' + str(self.ifAndWhileLabels + 1))
+
         # '}'
         self.check_token(False, ['}'])
+
+        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
 
         # ?('else'
         self.advance()
@@ -671,7 +680,12 @@ class CompilationEngine:
 
             self.advance()
 
+        self.ifAndWhileLabels += 1
+        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
+
     # grammar: 'while' '(' expression ')' '{' statements '}'
+    # code effect: label L1. Then compile the expression and negate it. Then we
+    # if-goto L2, compile the first statements and goto L1. Then label L2.
     def compile_while(self):
         # 'while'
         self.check_token(False, ['while'])
@@ -679,8 +693,14 @@ class CompilationEngine:
         # '('
         self.check_token(True, ['('])
 
+        self.ifAndWhileLabels += 1
+        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
+
         # expression
         self.compile_expression(True)
+
+        self.VMWriter.writeArithmetic(Command.NEG)
+        self.VMWriter.writeIf('L' + str(self.ifAndWhileLabels + 1))
 
         # ')'
         self.check_token(False, [')'])
@@ -691,6 +711,9 @@ class CompilationEngine:
         # statements
         self.advance()
         self.compile_statements()
+        self.VMWriter.writeGoto('L' + str(self.ifAndWhileLabels))
 
         # '}'
         self.check_token(False, ['}'])
+        self.ifAndWhileLabels += 1
+        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))

@@ -26,7 +26,10 @@ class Test {
       var int i;
       let h = 5;
       let i = thirdTest(h);
-      return i+(h*g);
+      if (g > 5):
+          return i + g
+      else:
+          return i + h
    }
    method void sixthTest() {
       return 1;
