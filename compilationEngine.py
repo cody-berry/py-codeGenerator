@@ -652,16 +652,20 @@ class CompilationEngine:
         # '{'
         self.check_token(True, ['{'])
 
+        # this is to handle recursive if/while statements.
+        ifAndWhileLabels = self.ifAndWhileLabels
+
+        self.ifAndWhileLabels += 1
         # statements
         self.advance()
         self.compile_statements()
 
-        self.VMWriter.writeGoto('L' + str(self.ifAndWhileLabels + 1))
+        self.VMWriter.writeGoto('L' + str(ifAndWhileLabels + 1))
 
         # '}'
         self.check_token(False, ['}'])
 
-        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
+        self.VMWriter.writeLabel('L' + str(ifAndWhileLabels))
 
         # ?('else'
         self.advance()
@@ -680,8 +684,8 @@ class CompilationEngine:
 
             self.advance()
 
-        self.ifAndWhileLabels += 1
-        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
+        ifAndWhileLabels += 1
+        self.VMWriter.writeLabel('L' + str(ifAndWhileLabels))
 
     # grammar: 'while' '(' expression ')' '{' statements '}'
     # code effect: label L1. Then compile the expression and negate it. Then we
@@ -708,12 +712,18 @@ class CompilationEngine:
         # '{'
         self.check_token(True, ['{'])
 
+        # this is to handle recursive while/if statements
+        ifAndWhileLabels = self.ifAndWhileLabels
+
+        self.ifAndWhileLabels += 1
         # statements
         self.advance()
         self.compile_statements()
-        self.VMWriter.writeGoto('L' + str(self.ifAndWhileLabels))
+        self.VMWriter.writeGoto('L' + str(ifAndWhileLabels))
 
         # '}'
         self.check_token(False, ['}'])
-        self.ifAndWhileLabels += 1
-        self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
+        ifAndWhileLabels += 1
+        self.VMWriter.writeLabel('L' + str(ifAndWhileLabels))
+
+        self.ifAndWhileLabels = max(self.ifAndWhileLabels, ifAndWhileLabels)

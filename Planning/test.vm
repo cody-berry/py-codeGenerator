@@ -1,0 +1,157 @@
+function Test.firstTest 1
+push local 0
+push arg 0
+pop pointer 0
+pop this 0
+push constant 0
+return
+function Test.secondTest 1
+push arg 0
+pop pointer 0
+push this 0
+pop local 0
+push local 0
+return
+function Test.thirdTest 1
+push local 0
+push arg 0
+pop pointer 0
+push this 0
+add
+push arg 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push arg 1
+push arg 0
+pop pointer 0
+push this 0
+add
+return
+function Test.fourthTest 2
+push local 0
+push local 1
+add
+push arg 0
+pop pointer 0
+pop this 0
+push arg 0
+pop pointer 0
+push this 0
+return
+function Test.fifthTest 2
+push constant 5
+pop local 0
+push local 0
+call thirdTest 1
+pop local 1
+push arg 1
+push constant 5
+gt
+neg
+if-goto L1
+push local 1
+push arg 1
+add
+return
+goto L2
+label L1
+push local 1
+push local 0
+add
+return
+label L2
+function Test.sixthTest 2
+push constant 5
+pop local 0
+push local 0
+call thirdTest 1
+pop local 1
+push arg 1
+push constant 5
+gt
+neg
+if-goto L3
+push local 1
+push arg 1
+add
+return
+goto L4
+label L3
+push local 1
+push local 0
+add
+return
+label L4
+function Test.seventhTest 0
+push arg 1
+call Test.fifthTest 1
+push arg 1
+call Test.thirdTest 1
+return
+function Test.eighthTest 0
+push arg 1
+neg
+if-goto L5
+push arg 1
+return
+goto L6
+label L5
+label L6
+push constant 0
+return
+function Test.ninthTest 1
+push constant 0
+pop local 0
+label L7
+push arg 1
+neg
+if-goto L8
+push local 0
+push arg 1
+add
+pop local 0
+push arg 1
+push constant 1
+sub
+pop arg 1
+label L8
+push local 0
+push arg 1
+gt
+neg
+if-goto L9
+push local 0
+push constant 1
+sub
+pop local 0
+goto L8
+label L9
+goto L7
+label L8
+push local 0
+return
+function Test.tenthTest 0
+push arg 1
+push arg 3
+gt
+neg
+if-goto L10
+push arg 2
+push arg 1
+gt
+neg
+if-goto L11
+push arg 2
+return
+goto L12
+label L11
+push arg 1
+return
+label L12
+goto L11
+label L10
+push arg 3
+return
+label L11

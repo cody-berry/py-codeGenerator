@@ -26,18 +26,50 @@ class Test {
       var int i;
       let h = 5;
       let i = thirdTest(h);
-      if (g > 5):
-          return i + g
-      else:
-          return i + h
+      if (g > 5) {
+          return i + g;}
+      else {
+          return i + h;}
    }
-   method void sixthTest() {
-      return 1;
+   method void sixthTest(int g) {
+      var int h;
+      var int i;
+      let h = 5;
+      let i = thirdTest(h);
+      if (g > 5) {
+          return i + g;}
+      else {
+          return i + h;}
    }
    method void seventhTest(int j) {
       do Test.fifthTest(j);
       return Test.thirdTest(j);
    }
+   method void eighthTest(int k) {
+      if (k) {
+          return k;}
+      return 0;
+   }
+   method void ninthTest(int l) {
+      var int m;
+      let m = 0;
+      while (l) {
+         let m = m + l;
+         let l = l - 1;
+         while (m > l) {
+             let m = m - 1;}
+      }
+      return m;
+   }
+   method void tenthTest(int n, int o, int p) {
+      if (n > p) {
+          if (o > n) {
+              return o;}
+          else {
+              return n;}}
+      else {
+          return p;
+      }
 }
 
 

@@ -30,7 +30,7 @@ class VMWriter:
         # now we need to map the segment enums to VM segments
         self.segmentMapping = {
             Segments.CONST: 'constant',
-            Segments.ARG: 'arg',
+            Segments.ARG: 'argument',
             Segments.LOCAL: 'local',
             Segments.STATIC: 'static',
             Segments.THIS: 'this',
