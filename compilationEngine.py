@@ -441,6 +441,7 @@ class CompilationEngine:
 
                 # expression
                 self.compile_expression(True)
+                numExpressions += 1
 
         return numExpressions
 
