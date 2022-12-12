@@ -416,6 +416,8 @@ class CompilationEngine:
         nArgs = self.compile_expression_list()
         self.VMWriter.writeCall(identifier, nArgs)
 
+        self.VMWriter.writePop(Segments.TEMP, 0)
+
         # read the last comment to see why we don't advance on right paren
         self.check_token(False, [')'])
 
