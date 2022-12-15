@@ -645,7 +645,7 @@ class CompilationEngine:
 
         # expression
         self.compile_expression(True)
-        self.VMWriter.writeArithmetic(Command.NEG)
+        self.VMWriter.writeArithmetic(Command.NOT)
         self.ifAndWhileLabels += 1
         self.VMWriter.writeIf('L' + str(self.ifAndWhileLabels))
 
@@ -706,7 +706,7 @@ class CompilationEngine:
         # expression
         self.compile_expression(True)
 
-        self.VMWriter.writeArithmetic(Command.NEG)
+        self.VMWriter.writeArithmetic(Command.NOT)
         self.VMWriter.writeIf('L' + str(self.ifAndWhileLabels + 1))
 
         # ')'

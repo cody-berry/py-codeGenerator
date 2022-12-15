@@ -19,7 +19,7 @@ neg
 pop local 2
 label L1
 push local 2
-neg
+not
 if-goto L2
 push local 1
 push constant 1
@@ -32,7 +32,7 @@ push local 1
 push constant 16
 gt
 not
-neg
+not
 if-goto L3
 push argument 0
 push local 0
@@ -40,7 +40,7 @@ and
 push constant 0
 eq
 not
-neg
+not
 if-goto L5
 push constant 8000
 push local 1
@@ -70,7 +70,7 @@ function Main.nextMask 0
 push argument 0
 push constant 0
 eq
-neg
+not
 if-goto L7
 push constant 1
 return
@@ -86,7 +86,7 @@ label L9
 push argument 1
 push constant 0
 gt
-neg
+not
 if-goto L10
 push argument 0
 push argument 2
