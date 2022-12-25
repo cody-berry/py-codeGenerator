@@ -146,8 +146,8 @@ class CompilationEngine:
         # constructor/function/method. note that because we just checked that it
         # was a constructor, functon, or method, we don't need to advance.
         self.check_token(False, ['constructor', 'function', 'method'])
+        isConstructor = self.tokenizer.current_token == 'constructor'
         isMethod = self.tokenizer.current_token == 'method'
-
         # 'void' or a type.
         self.tokenizer.advance()
         if self.tokenizer.current_token == 'void':
@@ -176,7 +176,7 @@ class CompilationEngine:
         self.check_token(False, [')'])
 
         # subroutineBody, the function
-        self.compile_subroutine_body(funcName)
+        self.compile_subroutine_body(funcName, isConstructor)
 
     # grammar: ?(type varname *(',' type varName))
     # effect on code: generate however many args are in the parameter list with
@@ -224,7 +224,7 @@ class CompilationEngine:
     # call to VMWriter's writeFunction command. if isVoid is true, it is sent
     # to compile_statements() to inform it that its return statement will be
     # void.
-    def compile_subroutine_body(self, funcName):
+    def compile_subroutine_body(self, funcName, isConstructor):
         # '{'
         self.check_token(True, ['{'])
 
@@ -237,8 +237,15 @@ class CompilationEngine:
         self.VMWriter.writeFunction(funcName,
                                     self.symbolTable.varCount(VarType.VAR))
 
+        # what happens if this is a constructor?
+        if isConstructor:
+            # then we call alloc on the number of fields.
+            self.VMWriter.writePush(Segments.CONST, self.symbolTable.varCount(VarType.FIELD))
+            self.VMWriter.writeCall('Memory.alloc', 1)
+            self.VMWriter.writePop(Segments.POINTER, 0)
+
         # statements
-        self.compile_statements()
+        self.compile_statements(isConstructor)
 
         # '}'
         self.check_token(False, ['}'])
@@ -277,19 +284,19 @@ class CompilationEngine:
         self.check_token(False, [';'])
 
     # grammar: statement*
-    def compile_statements(self):
+    def compile_statements(self, isConstructor):
         # not only does compile_statement() write down everything needed for a statement,
         # but it returns true if there is a statement and false if there isn't. it also takes care of advancing
         # by itself because of the formula of the if statement, ending right after the optional else statement
         # meaning that all other statements have advanced after.
-        while self.compile_statement():
+        while self.compile_statement(isConstructor):
             pass
 
     # grammar: letStatement | doStatement | whileStatement | ifStatement | returnStatement
-    def compile_statement(self):
+    def compile_statement(self, isConstructor):
         match self.tokenizer.current_token:
             case 'let':  # letStatement
-                self.compile_let()
+                self.compile_let(isConstructor)
                 self.advance()
                 return True
             case 'do':  # doStatement
@@ -301,11 +308,11 @@ class CompilationEngine:
                 self.advance()
                 return True
             case 'while':  # whileStatement
-                self.compile_while()
+                self.compile_while(isConstructor)
                 self.advance()
                 return True
             case 'if':  # ifStatement
-                self.compile_if()
+                self.compile_if(isConstructor)
                 return True
         return False
 
@@ -317,7 +324,7 @@ class CompilationEngine:
     # we didn't look at the array, we simply pop to varName. If we did have to
     # look at an array, we write this sequence of commands: pop temp 0, pop
     # pointer 1, push temp 0, pop that 0.
-    def compile_let(self):
+    def compile_let(self, isConstructor):
         # 'let', which defines the name of this function
         self.check_token(False, ['let'])
 
@@ -336,8 +343,9 @@ class CompilationEngine:
             # if we really want to access a field, doesn't this imply that we're
             # in a method and the first argument is this?
             if self.symbolTable.kindOf(varName) == VarType.FIELD:
-                self.VMWriter.writePush(Segments.ARG, 0)
-                self.VMWriter.writePop(Segments.POINTER, 0)
+                if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
+                    self.VMWriter.writePush(Segments.ARG, 0)
+                    self.VMWriter.writePop(Segments.POINTER, 0)
             self.VMWriter.writePush(self.varTypeToSegmentMapping[
                                         self.symbolTable.kindOf(varName)],
                                     self.symbolTable
@@ -374,8 +382,9 @@ class CompilationEngine:
             # if we really want to access a field, doesn't this imply that we're
             # in a method and the first argument is this?
             if self.symbolTable.kindOf(varName) == VarType.FIELD:
-                self.VMWriter.writePush(Segments.ARG, 0)
-                self.VMWriter.writePop(Segments.POINTER, 0)
+                if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
+                    self.VMWriter.writePush(Segments.ARG, 0)
+                    self.VMWriter.writePop(Segments.POINTER, 0)
             self.VMWriter.writePop(self.varTypeToSegmentMapping[
                                        self.symbolTable.kindOf(varName)],
                                    self.symbolTable
@@ -636,7 +645,7 @@ class CompilationEngine:
         self.VMWriter.writeReturn()
 
     # 'if' '(' expression ')' '{' statements '}' ?('else' '{' statements '}')
-    def compile_if(self):
+    def compile_if(self, isConstructor):
         # 'if'
         self.check_token(False, ['if'])
 
@@ -661,7 +670,7 @@ class CompilationEngine:
         self.ifAndWhileLabels += 1
         # statements
         self.advance()
-        self.compile_statements()
+        self.compile_statements(isConstructor)
 
         self.VMWriter.writeGoto('L' + str(ifAndWhileLabels + 1))
 
@@ -693,7 +702,7 @@ class CompilationEngine:
     # grammar: 'while' '(' expression ')' '{' statements '}'
     # code effect: label L1. Then compile the expression and negate it. Then we
     # if-goto L2, compile the first statements and goto L1. Then label L2.
-    def compile_while(self):
+    def compile_while(self, isConstructor):
         # 'while'
         self.check_token(False, ['while'])
 
@@ -721,7 +730,7 @@ class CompilationEngine:
         self.ifAndWhileLabels += 1
         # statements
         self.advance()
-        self.compile_statements()
+        self.compile_statements(isConstructor)
         self.VMWriter.writeGoto('L' + str(ifAndWhileLabels))
 
         # '}'

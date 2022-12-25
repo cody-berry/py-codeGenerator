@@ -1,5 +1,10 @@
 class Test {
    field int test;
+   constructor Test new() {
+      let test = Array.new(15);
+      return this;
+   }
+
    method void firstTest() {
       var int a;
       let test = a;

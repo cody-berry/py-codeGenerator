@@ -1,12 +1,23 @@
+function Test.new 0
+push constant 1
+call Memory.alloc 1
+pop pointer 0
+push constant 15
+call Array.new 1
+push argument 0
+pop pointer 0
+pop this 0
+push pointer 0
+return
 function Test.firstTest 1
 push local 0
-push arg 0
+push argument 0
 pop pointer 0
 pop this 0
 push constant 0
 return
 function Test.secondTest 1
-push arg 0
+push argument 0
 pop pointer 0
 push this 0
 pop local 0
@@ -14,17 +25,17 @@ push local 0
 return
 function Test.thirdTest 1
 push local 0
-push arg 0
+push argument 0
 pop pointer 0
 push this 0
 add
-push arg 1
+push argument 1
 pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-push arg 1
-push arg 0
+push argument 1
+push argument 0
 pop pointer 0
 push this 0
 add
@@ -33,10 +44,10 @@ function Test.fourthTest 2
 push local 0
 push local 1
 add
-push arg 0
+push argument 0
 pop pointer 0
 pop this 0
-push arg 0
+push argument 0
 pop pointer 0
 push this 0
 return
@@ -46,13 +57,13 @@ pop local 0
 push local 0
 call thirdTest 1
 pop local 1
-push arg 1
+push argument 1
 push constant 5
 gt
-neg
+not
 if-goto L1
 push local 1
-push arg 1
+push argument 1
 add
 return
 goto L2
@@ -68,13 +79,13 @@ pop local 0
 push local 0
 call thirdTest 1
 pop local 1
-push arg 1
+push argument 1
 push constant 5
 gt
-neg
+not
 if-goto L3
 push local 1
-push arg 1
+push argument 1
 add
 return
 goto L4
@@ -85,16 +96,17 @@ add
 return
 label L4
 function Test.seventhTest 0
-push arg 1
+push argument 1
 call Test.fifthTest 1
-push arg 1
+pop temp 0
+push argument 1
 call Test.thirdTest 1
 return
 function Test.eighthTest 0
-push arg 1
-neg
+push argument 1
+not
 if-goto L5
-push arg 1
+push argument 1
 return
 goto L6
 label L5
@@ -105,53 +117,53 @@ function Test.ninthTest 1
 push constant 0
 pop local 0
 label L7
-push arg 1
-neg
+push argument 1
+not
 if-goto L8
 push local 0
-push arg 1
+push argument 1
 add
 pop local 0
-push arg 1
+push argument 1
 push constant 1
 sub
-pop arg 1
-label L8
+pop argument 1
+label L9
 push local 0
-push arg 1
+push argument 1
 gt
-neg
-if-goto L9
+not
+if-goto L10
 push local 0
 push constant 1
 sub
 pop local 0
-goto L8
-label L9
+goto L9
+label L10
 goto L7
 label L8
 push local 0
 return
 function Test.tenthTest 0
-push arg 1
-push arg 3
+push argument 1
+push argument 3
 gt
-neg
-if-goto L10
-push arg 2
-push arg 1
-gt
-neg
+not
 if-goto L11
-push arg 2
+push argument 2
+push argument 1
+gt
+not
+if-goto L13
+push argument 2
 return
+goto L14
+label L13
+push argument 1
+return
+label L14
 goto L12
 label L11
-push arg 1
+push argument 3
 return
 label L12
-goto L11
-label L10
-push arg 3
-return
-label L11
