@@ -26,48 +26,48 @@ push this 1
 push constant 1
 eq
 not
-if-goto L1
+if-goto L13
 call square.moveUp 0
 pop temp 0
-goto L2
-label L1
-label L2
+goto L14
+label L13
+label L14
 push argument 0
 pop pointer 0
 push this 1
 push constant 2
 eq
 not
-if-goto L3
+if-goto L15
 call square.moveDown 0
 pop temp 0
-goto L4
-label L3
-label L4
+goto L16
+label L15
+label L16
 push argument 0
 pop pointer 0
 push this 1
 push constant 3
 eq
 not
-if-goto L5
+if-goto L17
 call square.moveLeft 0
 pop temp 0
-goto L6
-label L5
-label L6
+goto L18
+label L17
+label L18
 push argument 0
 pop pointer 0
 push this 1
 push constant 4
 eq
 not
-if-goto L7
+if-goto L19
 call square.moveRight 0
 pop temp 0
-goto L8
-label L7
-label L8
+goto L20
+label L19
+label L20
 push constant 5
 call Sys.wait 1
 pop temp 0
@@ -76,116 +76,116 @@ return
 function SquareGame.run 2
 push constant 0
 pop local 1
-label L9
+label L21
 push local 1
 not
 not
-if-goto L10
-label L11
+if-goto L22
+label L23
 push local 0
 push constant 0
 eq
 not
-if-goto L12
+if-goto L24
 call Keyboard.keyPressed 0
 pop local 0
 call moveSquare 0
 pop temp 0
-goto L11
-label L12
+goto L23
+label L24
 push local 0
 push constant 81
 eq
 not
-if-goto L13
+if-goto L25
 push constant 1
 neg
 pop local 1
-goto L14
-label L13
-label L14
+goto L26
+label L25
+label L26
 push local 0
 push constant 90
 eq
 not
-if-goto L15
+if-goto L27
 call square.decSize 0
 pop temp 0
-goto L16
-label L15
-label L16
+goto L28
+label L27
+label L28
 push local 0
 push constant 88
 eq
 not
-if-goto L17
+if-goto L29
 call square.incSize 0
 pop temp 0
-goto L18
-label L17
-label L18
+goto L30
+label L29
+label L30
 push local 0
 push constant 131
 eq
 not
-if-goto L19
+if-goto L31
 push constant 1
 push argument 0
 pop pointer 0
 pop this 1
-goto L20
-label L19
-label L20
+goto L32
+label L31
+label L32
 push local 0
 push constant 133
 eq
 not
-if-goto L21
+if-goto L33
 push constant 2
 push argument 0
 pop pointer 0
 pop this 1
-goto L22
-label L21
-label L22
+goto L34
+label L33
+label L34
 push local 0
 push constant 130
 eq
 not
-if-goto L23
+if-goto L35
 push constant 3
 push argument 0
 pop pointer 0
 pop this 1
-goto L24
-label L23
-label L24
+goto L36
+label L35
+label L36
 push local 0
 push constant 132
 eq
 not
-if-goto L25
+if-goto L37
 push constant 4
 push argument 0
 pop pointer 0
 pop this 1
-goto L26
-label L25
-label L26
-label L27
+goto L38
+label L37
+label L38
+label L39
 push local 0
 push constant 0
 eq
 not
 not
-if-goto L28
+if-goto L40
 call Keyboard.keyPressed 0
 pop local 0
 call moveSquare 0
 pop temp 0
-goto L27
-label L28
-goto L9
-label L10
+goto L39
+label L40
+goto L21
+label L22
 push constant 0
 return

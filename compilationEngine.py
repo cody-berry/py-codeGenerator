@@ -4,7 +4,7 @@ from VMWriter import *
 
 
 class CompilationEngine:
-    def __init__(self, filename, tokenizer):
+    def __init__(self, filename, tokenizer, nextLabel):
         self.tokenizer = tokenizer
         self.indents = 1
         self.symbolTable = SymbolTable()
@@ -18,7 +18,7 @@ class CompilationEngine:
             VarType.STATIC: Segments.STATIC
         }
 
-        self.ifAndWhileLabels = 0
+        self.ifAndWhileLabels = nextLabel
 
         try:
             self.compile_class()
