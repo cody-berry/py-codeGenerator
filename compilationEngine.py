@@ -407,10 +407,10 @@ class CompilationEngine:
         # this identifier is only a class if it is uppercase
         identifier = self.tokenizer.current_token
         type = None
-        isClass = True # is this identifier a class?
+        isClass = True  # is this identifier a class?
         # if this is lowercase, then we need to set a type for it. this will
         # come in handy later
-        if identifier[0].lowercase() == identifier[0]:
+        if identifier[0].lower() == identifier[0]:
             try:
                 type = self.symbolTable.typeOf(identifier)
                 # this way we can just do the simple push
@@ -421,29 +421,50 @@ class CompilationEngine:
                     if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
                         self.VMWriter.writePush(Segments.ARG, 0)
                         self.VMWriter.writePop(Segments.POINTER, 0)
-                    self.VMWriter.writePush(VarType.FIELD, self.symbolTable.indexOf(identifier))
+                    self.VMWriter.writePush(Segments.THIS, self.symbolTable.indexOf(identifier))
                 isClass = False
             except:
-                # this will be because this is actually a method
-                pass
+                # this happens if you are calling something in your class, or self.functionNamePrefix
+                type = self.functionNamePrefix
+
+                isClass = False
 
         # ?('.'
         self.advance()
+        identifier2 = None
         if self.tokenizer.current_token == '.':
             self.check_token(False, ['.'])
 
             # identifier
             self.compile_identifier(True)
-
-            identifier += '.' + self.tokenizer.current_token
+            identifier2 = self.tokenizer.current_token
 
             self.tokenizer.advance()
+
+        # there are 3 cases here:
+        # a) isClass is on, meaning that the identifier is already set to the
+        #    class. In this case, you just add '.identifier2' there.
+        # b) isClass is not on and the type is equal to self.functionNamePrefix.
+        #    if this happens, there is no identifier.2. Instead, you backwards
+        #    append 'type.'.
+        # c) isClass is not on and the type is different from self.functionNamePrefix.
+        #    In this scenario, identifier should now equal 'type.identifier2',
+        #    which doesn't even include identifier.
+        if isClass:
+            identifier += '.' + identifier2
+        else:
+            if type == self.functionNamePrefix:
+                identifier = type + '.' + identifier
+            else:
+                identifier = type + '.' + identifier2
 
         # left paren. we don't advance because of the same reason we don't advance for the equal sign in compileLet().
         self.check_token(False, ['('])
 
         # expressionList. Since this comes out already advanced to the next token, we don't advance on the next.
         nArgs = self.compile_expression_list(isConstructor)
+        if (not isClass) and (not type == self.functionNamePrefix):
+            nArgs += 1  # we should do this only if the first identifier is a variable and there is one
         self.VMWriter.writeCall(identifier, nArgs)
 
         self.VMWriter.writePop(Segments.TEMP, 0)
