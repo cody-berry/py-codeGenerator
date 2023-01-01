@@ -300,11 +300,11 @@ class CompilationEngine:
                 self.advance()
                 return True
             case 'do':  # doStatement
-                self.compile_do()
+                self.compile_do(isConstructor)
                 self.advance()
                 return True
             case 'return':  # returnStatement
-                self.compile_return()
+                self.compile_return(isConstructor)
                 self.advance()
                 return True
             case 'while':  # whileStatement
@@ -352,7 +352,7 @@ class CompilationEngine:
                                     .indexOf(varName))
 
             # expression
-            self.compile_expression(True)
+            self.compile_expression(True, isConstructor)
 
             # ']'
             self.check_token(False, [']'])
@@ -368,7 +368,7 @@ class CompilationEngine:
         self.check_token(False, ['='])
 
         # expression
-        self.compile_expression(True)
+        self.compile_expression(True, isConstructor)
 
         # ';'
         self.check_token(False, [';'])
@@ -397,7 +397,7 @@ class CompilationEngine:
     # from compile_expression_list(), write a 'call' to the 'identifier'
     # variable and the number of args being the number given from
     # compile_expression_list().
-    def compile_do(self):
+    def compile_do(self, isConstructor):
         # 'do'
         self.check_token(False, ['do'])
 
@@ -422,7 +422,7 @@ class CompilationEngine:
         self.check_token(False, ['('])
 
         # expressionList. Since this comes out already advanced to the next token, we don't advance on the next.
-        nArgs = self.compile_expression_list()
+        nArgs = self.compile_expression_list(isConstructor)
         self.VMWriter.writeCall(identifier, nArgs)
 
         self.VMWriter.writePop(Segments.TEMP, 0)
@@ -434,7 +434,7 @@ class CompilationEngine:
         self.check_token(True, [';'])
 
     # grammar: ?(expression *(',' expression))
-    def compile_expression_list(self):
+    def compile_expression_list(self, isConstructor):
         numExpressions = 0
         # ?(expression
         self.advance()
@@ -443,7 +443,7 @@ class CompilationEngine:
                                              TokenType.INT_CONST])
                 or (self.tokenizer.current_token in ['true', 'false', 'null',
                                                      'this', '(', '-', '~'])):
-            self.compile_expression(False)
+            self.compile_expression(False, isConstructor)
             numExpressions += 1
 
             # *(','
@@ -451,7 +451,7 @@ class CompilationEngine:
                 self.check_token(False, [','])
 
                 # expression
-                self.compile_expression(True)
+                self.compile_expression(True, isConstructor)
                 numExpressions += 1
 
         return numExpressions
@@ -459,9 +459,9 @@ class CompilationEngine:
     # grammar: term *(op term)
     # code effect: compiles the first term. then compiles the second term,
     # the first op, the third term, the second op, and so on.
-    def compile_expression(self, advance):
+    def compile_expression(self, advance, isConstructor):
         # term
-        self.compile_term(advance)
+        self.compile_term(advance, isConstructor)
 
         # *(op
         if self.tokenizer.current_token in ['+', '-', '*', '/', '&', '|',
@@ -471,7 +471,7 @@ class CompilationEngine:
             currentOp = self.tokenizer.current_token
 
             # term
-            self.compile_term(True)
+            self.compile_term(True, isConstructor)
 
             # case +: this is the Command.ADD arithmetic command.
             # case -: this is the Command.SUB arithmetic command, or subtract.
@@ -525,7 +525,7 @@ class CompilationEngine:
     # case string constant: push the id of the first character of the string and
     # call String.new(). then call String.appendChar() for the appended string
     # and the new string from String.new().
-    def compile_term(self, advance):
+    def compile_term(self, advance, isConstructor):
         if advance:
             self.advance()
         match self.tokenizer.token_type():
@@ -548,7 +548,7 @@ class CompilationEngine:
                                                 self.symbolTable
                                                 .indexOf(identifier))
                         self.check_token(False, ['['])
-                        self.compile_expression(True)
+                        self.compile_expression(True, isConstructor)
                         self.VMWriter.writeArithmetic(Command.ADD)
                         self.VMWriter.writePop(Segments.POINTER, 1)
                         self.VMWriter.writePush(Segments.THAT, 0)
@@ -560,14 +560,14 @@ class CompilationEngine:
                         self.compile_identifier(True)
                         identifier += '.' + self.tokenizer.current_token
                         self.check_token(True, ['('])
-                        nArgs = self.compile_expression_list()
+                        nArgs = self.compile_expression_list(isConstructor)
                         self.check_token(False, [')'])
                         self.VMWriter.writeCall(identifier, nArgs)
                         self.advance()
                     # '(' expressionList ')'
                     case '(':
                         self.check_token(False, ['('])
-                        nArgs = self.compile_expression_list()
+                        nArgs = self.compile_expression_list(isConstructor)
                         self.check_token(False, [')'])
                         self.VMWriter.writeCall(identifier, nArgs)
                         self.advance()
@@ -585,13 +585,16 @@ class CompilationEngine:
                 # 'this' | 'null' | 'true' | 'false'
                 self.check_token(False, ['this', 'null', 'true', 'false'])
                 match self.tokenizer.current_token:
-                    case 'this':
-                        self.VMWriter.writePush(Segments.POINTER, 0)
-                    case 'null':
+                    case 'this':  # 'this' is just 'pointer' if it's a constructor, and 'arg 0' if it's not
+                        if isConstructor:
+                            self.VMWriter.writePush(Segments.POINTER, 0)
+                        else:  # implies that this is a method.
+                            self.VMWriter.writePush(Segments.ARG, 0)
+                    case 'null':  # 0
                         self.VMWriter.writePush(Segments.CONST, 0)
-                    case 'false':
+                    case 'false':  # 0
                         self.VMWriter.writePush(Segments.CONST, 0)
-                    case 'true':
+                    case 'true':  # negative 1
                         self.VMWriter.writePush(Segments.CONST, 1)
                         self.VMWriter.writeArithmetic(Command.NEG)
                 self.advance()
@@ -601,18 +604,18 @@ class CompilationEngine:
                     # '(' expression ')'
                     case '(':
                         self.check_token(False, ['('])
-                        self.compile_expression(True)
+                        self.compile_expression(True, isConstructor)
                         self.check_token(False, [')'])
                         self.advance()
                     # '-' term
                     case '-':
                         self.check_token(False, ['-'])
-                        self.compile_term(True)
+                        self.compile_term(True, isConstructor)
                         self.VMWriter.writeArithmetic(Command.NEG)
                     # '~' term
                     case '~':
                         self.check_token(False, ['~'])
-                        self.compile_term(True)
+                        self.compile_term(True, isConstructor)
                         self.VMWriter.writeArithmetic(Command.NOT)
 
             # others: intConst | stringConst
@@ -624,7 +627,7 @@ class CompilationEngine:
 
     # grammar: 'return' expression? ';'
     # code effect: after pushing const 0 or compiling an expression, return.
-    def compile_return(self):
+    def compile_return(self, isConstructor):
         # 'return'
         self.check_token(False, ['return'])
 
@@ -635,7 +638,7 @@ class CompilationEngine:
                                              TokenType.INT_CONST])
                 or (self.tokenizer.current_token in ['true', 'false', 'null',
                                                      'this', '-', '~'])):
-            self.compile_expression(False)
+            self.compile_expression(False, isConstructor)
         else:
             self.VMWriter.writePush(Segments.CONST, 0)
 
@@ -653,7 +656,7 @@ class CompilationEngine:
         self.check_token(True, ['('])
 
         # expression
-        self.compile_expression(True)
+        self.compile_expression(True, isConstructor)
         self.VMWriter.writeArithmetic(Command.NOT)
         self.ifAndWhileLabels += 1
         self.VMWriter.writeIf('L' + str(self.ifAndWhileLabels))
@@ -689,7 +692,7 @@ class CompilationEngine:
 
             # statements
             self.advance()
-            self.compile_statements()
+            self.compile_statements(isConstructor)
 
             # '}'
             self.check_token(False, ['}'])
@@ -713,7 +716,7 @@ class CompilationEngine:
         self.VMWriter.writeLabel('L' + str(self.ifAndWhileLabels))
 
         # expression
-        self.compile_expression(True)
+        self.compile_expression(True, isConstructor)
 
         self.VMWriter.writeArithmetic(Command.NOT)
         self.VMWriter.writeIf('L' + str(self.ifAndWhileLabels + 1))
