@@ -7,7 +7,7 @@ file = 'Square'
 nextLabel = 0
 if file[-5:] == '.jack':
     tokenizer = JackTokenizer(file)
-    compileEngine = CompilationEngine(file, tokenizer)
+    compileEngine = CompilationEngine(file, tokenizer, 0)
 else:
     for path in pathlib.Path(
             file).iterdir():  # iterate through all the files in the directory

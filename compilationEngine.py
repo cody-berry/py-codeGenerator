@@ -240,7 +240,8 @@ class CompilationEngine:
         # what happens if this is a constructor?
         if isConstructor:
             # then we call alloc on the number of fields.
-            self.VMWriter.writePush(Segments.CONST, self.symbolTable.varCount(VarType.FIELD))
+            self.VMWriter.writePush(Segments.CONST,
+                                    self.symbolTable.varCount(VarType.FIELD))
             self.VMWriter.writeCall('Memory.alloc', 1)
             self.VMWriter.writePop(Segments.POINTER, 0)
 
@@ -414,14 +415,25 @@ class CompilationEngine:
             try:
                 type = self.symbolTable.typeOf(identifier)
                 # this way we can just do the simple push
-                if self.symbolTable.kindOf(identifier) in [VarType.VAR, VarType.ARG, VarType.STATIC]:
-                    self.VMWriter.writePush(self.symbolTable.kindOf(identifier), self.symbolTable.indexOf(identifier))
+                if self.symbolTable.kindOf(identifier) in [VarType.VAR,
+                                                           VarType.ARG,
+                                                           VarType.STATIC]:
+                    segmentsMapping = {
+                        VarType.VAR: Segments.LOCAL,
+                        VarType.ARG: Segments.ARG,
+                        VarType.STATIC: Segments.STATIC
+                    }  # VMWriter doesn't actually accept VarType.
+                    self.VMWriter.writePush(
+                        segmentsMapping[self.symbolTable.kindOf(identifier)],
+                        self.symbolTable.indexOf(identifier))
                 # however, now we have to check isConstructor to see if pointer is already set. if it is not, we do our complex push.
                 else:
                     if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
                         self.VMWriter.writePush(Segments.ARG, 0)
                         self.VMWriter.writePop(Segments.POINTER, 0)
-                    self.VMWriter.writePush(Segments.THIS, self.symbolTable.indexOf(identifier))
+                    self.VMWriter.writePush(Segments.THIS,
+                                            self.symbolTable.indexOf(
+                                                identifier))
                 isClass = False
             except:
                 # this happens if you are calling something in your class, or self.functionNamePrefix
@@ -455,6 +467,10 @@ class CompilationEngine:
         else:
             if type == self.functionNamePrefix:
                 identifier = type + '.' + identifier
+                if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
+                    self.VMWriter.writePush(Segments.ARG, 0)
+                    self.VMWriter.writePop(Segments.POINTER, 0)
+                self.VMWriter.writePush(Segments.POINTER, 0)
             else:
                 identifier = type + '.' + identifier2
 
@@ -463,7 +479,7 @@ class CompilationEngine:
 
         # expressionList. Since this comes out already advanced to the next token, we don't advance on the next.
         nArgs = self.compile_expression_list(isConstructor)
-        if (not isClass) and (not type == self.functionNamePrefix):
+        if not isClass:
             nArgs += 1  # we should do this only if the first identifier is a variable and there is one
         self.VMWriter.writeCall(identifier, nArgs)
 
@@ -598,20 +614,81 @@ class CompilationEngine:
                         self.advance()
                     # '.' identifier '(' expressionList ')'
                     case '.':
+                        type = None
+                        isClass = True  # is this identifier a class?
+                        # if this is lowercase, then we need to set a type for it. this will
+                        # come in handy later
+                        if identifier[0].lower() == identifier[0]:
+                            try:
+                                type = self.symbolTable.typeOf(identifier)
+                                # this way we can just do the simple push
+                                if self.symbolTable.kindOf(identifier) in [
+                                    VarType.VAR, VarType.ARG, VarType.STATIC]:
+                                    segmentsMapping = {
+                                        VarType.VAR: Segments.LOCAL,
+                                        VarType.ARG: Segments.ARG,
+                                        VarType.STATIC: Segments.STATIC
+                                    }  # VMWriter doesn't actually accept VarType.
+                                    self.VMWriter.writePush(segmentsMapping[
+                                                                self.symbolTable.kindOf(
+                                                                    identifier)],
+                                                            self.symbolTable.indexOf(
+                                                                identifier))
+                                # however, now we have to check isConstructor to see if pointer is already set. if it is not, we do our complex push.
+                                else:
+                                    if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
+                                        self.VMWriter.writePush(Segments.ARG, 0)
+                                        self.VMWriter.writePop(Segments.POINTER,
+                                                               0)
+                                    self.VMWriter.writePush(Segments.THIS,
+                                                            self.symbolTable.indexOf(
+                                                                identifier))
+                                isClass = False
+                            except:
+                                # this happens if you are calling something in your class, or self.functionNamePrefix
+                                type = self.functionNamePrefix
+
+                                isClass = False
+
                         self.check_token(False, ['.'])
+
+                        # identifier
                         self.compile_identifier(True)
-                        identifier += '.' + self.tokenizer.current_token
-                        self.check_token(True, ['('])
+                        identifier2 = self.tokenizer.current_token
+
+                        self.tokenizer.advance()
+                        # there are 2 cases here:
+                        # a) isClass is on, meaning that the identifier is already set to the
+                        #    class. In this case, you just add '.identifier2' there.
+                        # b) isClass is not on and the type is different from self.functionNamePrefix.
+                        #    In this scenario, identifier should now equal 'type.identifier2',
+                        #    which doesn't even include identifier.
+                        if isClass:
+                            identifier += '.' + identifier2
+                        else:
+                            identifier = type + '.' + identifier2
+
+                        # left paren. we don't advance because of the same reason we don't advance for the equal sign in compileLet().
+                        self.check_token(False, ['('])
+
+                        # expressionList. Since this comes out already advanced to the next token, we don't advance on the next.
                         nArgs = self.compile_expression_list(isConstructor)
-                        self.check_token(False, [')'])
+                        if not isClass:
+                            nArgs += 1  # we should do this only if the first identifier is a variable and there is one
                         self.VMWriter.writeCall(identifier, nArgs)
-                        self.advance()
                     # '(' expressionList ')'
                     case '(':
                         self.check_token(False, ['('])
-                        nArgs = self.compile_expression_list(isConstructor)
+                        # most of the time, we're calling a method. if this is the case, then we're pushing 'this'
+                        if not isConstructor:
+                            self.VMWriter.writePush(Segments.ARG, 0)
+                        else:
+                            self.VMWriter.writePush(Segments.POINTER, 0)
+                        nArgs = self.compile_expression_list(isConstructor) + 1
                         self.check_token(False, [')'])
-                        self.VMWriter.writeCall(identifier, nArgs)
+                        # this is calling a function of ours
+                        self.VMWriter.writeCall(
+                            self.functionNamePrefix + '.' + identifier, nArgs)
                         self.advance()
                     case _:
                         if self.symbolTable.kindOf(identifier) == VarType.FIELD:
@@ -662,7 +739,8 @@ class CompilationEngine:
 
             # others: intConst | stringConst
             case TokenType.INT_CONST:
-                self.VMWriter.writePush(Segments.CONST, self.tokenizer.current_token)
+                self.VMWriter.writePush(Segments.CONST,
+                                        self.tokenizer.current_token)
                 self.advance()
             case TokenType.STRING_CONST:
                 self.advance()
