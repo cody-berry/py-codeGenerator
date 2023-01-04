@@ -281,7 +281,7 @@ class CompilationEngine:
             self.symbolTable.define(varName, varType, VarType.VAR)
             self.advance()
 
-        # repeat ';'
+        # ';'
         self.check_token(False, [';'])
 
     # grammar: statement*
@@ -373,7 +373,6 @@ class CompilationEngine:
 
         # ';'
         self.check_token(False, [';'])
-
         if accessedArray:
             self.VMWriter.writePop(Segments.TEMP, 0)
             self.VMWriter.writePop(Segments.POINTER, 1)
@@ -673,9 +672,11 @@ class CompilationEngine:
 
                         # expressionList. Since this comes out already advanced to the next token, we don't advance on the next.
                         nArgs = self.compile_expression_list(isConstructor)
+                        self.check_token(False, [')'])
                         if not isClass:
                             nArgs += 1  # we should do this only if the first identifier is a variable and there is one
                         self.VMWriter.writeCall(identifier, nArgs)
+                        self.advance()
                     # '(' expressionList ')'
                     case '(':
                         self.check_token(False, ['('])
@@ -743,6 +744,13 @@ class CompilationEngine:
                                         self.tokenizer.current_token)
                 self.advance()
             case TokenType.STRING_CONST:
+                # this is the hardest case: a STRING CONSTANT. remove the first
+                # character from the string. push the ord() output of it and
+                # call String.new(), then iterate through every other character
+                # of the string and push the ord() output and call
+                # String.appendChar on it.
+
+
                 self.advance()
 
     # grammar: 'return' expression? ';'
