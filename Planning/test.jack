@@ -75,6 +75,11 @@ class Test {
       else {
           return p;
       }
+   }
+   method void eleventhTest() {
+      var String q;
+      let q = "what is it?";
+   }
 }
 
 
