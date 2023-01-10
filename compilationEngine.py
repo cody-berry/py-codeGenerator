@@ -404,7 +404,28 @@ class CompilationEngine:
         # identifier
         self.compile_identifier(True)
 
+        # this identifier is only a class if it is uppercase
         identifier = self.tokenizer.current_token
+        type = None
+        isClass = True # is this identifier a class?
+        # if this is lowercase, then we need to set a type for it. this will
+        # come in handy later
+        if identifier[0].lowercase() == identifier[0]:
+            try:
+                type = self.symbolTable.typeOf(identifier)
+                # this way we can just do the simple push
+                if self.symbolTable.kindOf(identifier) in [VarType.VAR, VarType.ARG, VarType.STATIC]:
+                    self.VMWriter.writePush(self.symbolTable.kindOf(identifier), self.symbolTable.indexOf(identifier))
+                # however, now we have to check isConstructor to see if pointer is already set. if it is not, we do our complex push.
+                else:
+                    if not isConstructor:  # if this is a constructor, there isn't a first argument. Pointer should already be set.
+                        self.VMWriter.writePush(Segments.ARG, 0)
+                        self.VMWriter.writePop(Segments.POINTER, 0)
+                    self.VMWriter.writePush(VarType.FIELD, self.symbolTable.indexOf(identifier))
+                isClass = False
+            except:
+                # this will be because this is actually a method
+                pass
 
         # ?('.'
         self.advance()
