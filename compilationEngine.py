@@ -692,7 +692,7 @@ class CompilationEngine:
                             self.functionNamePrefix + '.' + identifier, nArgs)
                         self.advance()
                     case _:
-                        if self.symbolTable.kindOf(identifier) == VarType.FIELD:
+                        if self.symbolTable.kindOf(identifier) == VarType.FIELD and not isConstructor:
                             self.VMWriter.writePush(Segments.ARG, 0)
                             self.VMWriter.writePop(Segments.POINTER, 0)
                         self.VMWriter.writePush(self.varTypeToSegmentMapping[
@@ -749,7 +749,7 @@ class CompilationEngine:
                 # call String.new(), then iterate through every other character
                 # of the string and push the ord() output and call
                 # String.appendChar on it.
-                string = self.tokenizer.current_token
+                string = self.tokenizer.current_token[:-1] # note: the current token includes the " at the end
                 firstChar = string[0]
                 # the first letter of the string should be pushed. then call
                 # String.new

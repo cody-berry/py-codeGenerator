@@ -6,16 +6,12 @@ call Screen.clearScreen 0
 pop temp 0
 push constant 50
 pop this 6
------------------
 push constant 230
 push constant 229
-push argument 0 ?
-pop pointer 0
 push this 6
 push constant 7
 call Bat.new 4
 pop this 0
------------------
 push constant 253
 push constant 222
 push constant 0
@@ -56,8 +52,6 @@ call String.appendChar 2
 push constant 32
 call String.appendChar 2
 push constant 48
-call String.appendChar 2
-push constant 34
 call String.appendChar 2
 call Output.printString 1
 pop temp 0
@@ -231,8 +225,6 @@ call String.appendChar 2
 push constant 101
 call String.appendChar 2
 push constant 114
-call String.appendChar 2
-push constant 34
 call String.appendChar 2
 call Output.printString 1
 pop temp 0
