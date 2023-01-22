@@ -3,7 +3,7 @@ from compilationEngine import *
 import pathlib
 
 # file = 'Planning/test.jack'
-file = 'Pong'
+file = 'ComplexArrays'
 nextLabel = 0
 if file[-5:] == '.jack':
     tokenizer = JackTokenizer(file)

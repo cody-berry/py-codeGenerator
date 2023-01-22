@@ -749,14 +749,11 @@ class CompilationEngine:
                 # call String.new(), then iterate through every other character
                 # of the string and push the ord() output and call
                 # String.appendChar on it.
-                string = self.tokenizer.current_token[:-1] # note: the current token includes the " at the end
-                firstChar = string[0]
-                # the first letter of the string should be pushed. then call
-                # String.new
-                self.VMWriter.writePush(Segments.CONST, ord(firstChar))
+                string = self.tokenizer.current_token[:-1]  # note: the current token includes the " at the end
+                # the maximum length of the string, a very large arbitrary value, should be pushed onto the stack
+                self.VMWriter.writePush(Segments.CONST, 1000)
                 self.VMWriter.writeCall('String.new', 1)
 
-                # important: DO NOT include the first char of the string
                 for char in string[1:]:
                     self.VMWriter.writePush(Segments.CONST, ord(char))
                     self.VMWriter.writeCall('String.appendChar', 2)
